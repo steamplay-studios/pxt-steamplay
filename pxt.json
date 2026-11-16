@@ -1,0 +1,22 @@
+{
+    "name": "pxt-steamplay",
+    "version": "0.1.0",
+    "description": "STEAMPlay Studios blocks for micro:bit: smart buttons (single, double, long press), pressed-together, emergency stop and fast pin contacts. Servos, motors and music coming soon.",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*"
+    },
+    "files": [
+        "README.md",
+        "core.ts",
+        "inputs.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "blocksprj",
+    "public": true
+}
