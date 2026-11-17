@@ -1,15 +1,18 @@
 {
     "name": "pxt-steamplay",
-    "version": "0.1.0",
-    "description": "STEAMPlay Studios blocks for micro:bit: smart buttons (single, double, long press), pressed-together, emergency stop and fast pin contacts. Servos, motors and music coming soon.",
+    "displayName": "STEAMPlay Studios",
+    "version": "0.2.0",
+    "description": "STEAMPlay Studios blocks for micro:bit: smart buttons (single, double, long press, secret codes), pressed-together, emergency stops, fast pin contacts, temperature change, sound effects, songs, a band for 2–3 micro:bits and music light shows. Servos and motors coming soon.",
     "license": "MIT",
     "dependencies": {
-        "core": "*"
+        "core": "*",
+        "radio": "*"
     },
     "files": [
         "README.md",
         "core.ts",
-        "inputs.ts"
+        "inputs.ts",
+        "music.ts"
     ],
     "testFiles": [
         "test.ts"

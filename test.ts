@@ -4,6 +4,8 @@
 // The top row shows which input: left = A, middle = A+B, right = B, centre dot = logo.
 // A 3 s hold shows nothing (cancelled). Holding the logo 3 s is the emergency stop.
 // Touch P1 to GND: the bottom row counts contacts, and serial shows the contact time.
+// Music: boot-up sound at start, goal sound on each contact, "yes" for the secret code,
+// and an LED on P8 (with a resistor to GND) flashes to the beat.
 
 let contacts = 0
 
@@ -14,6 +16,8 @@ function show(letter: string, x: number) {
 }
 
 steamplayInputs.emergencyStop(SteamplayStopInput.Logo)
+// Second stop: a button wired between P2 and GND stops straight away.
+steamplayInputs.emergencyStopPin(SteamplayPin.P2, 0)
 
 steamplayInputs.onSinglePressed(SteamplayInput.A, function () { show("S", 0) })
 steamplayInputs.onDoublePressed(SteamplayInput.A, function () { show("D", 0) })
@@ -37,6 +41,19 @@ steamplayInputs.onPinContact(SteamplayPin.P1, 1, function () {
     contacts += 1
     led.plot((contacts - 1) % 5, 4)
     serial.writeValue("contact ms", steamplayInputs.contactTime(SteamplayPin.P1))
+    steamplayMusic.playSound(SteamplaySound.Goal, SteamplayPlayMode.InBackground)
 })
 
 basic.showIcon(IconNames.Happy)
+steamplayMusic.syncPin(SteamplayPin.P8, SteamplaySyncMode.Beat)
+steamplayMusic.playSound(SteamplaySound.BootUp, SteamplayPlayMode.InBackground)
+
+// Temperature: warm the micro:bit with your hand (or use the simulator slider).
+steamplayInputs.onTemperatureChange(SteamplayTempChange.Rises, 2, function () { basic.showArrow(ArrowNames.North) })
+steamplayInputs.onTemperatureChange(SteamplayTempChange.Falls, 2, function () { basic.showArrow(ArrowNames.South) })
+
+// Sequence: tap A, B, B, A quickly for a secret code.
+steamplayInputs.onSequence(SteamplayTap.A, SteamplayTap.B, SteamplayTap.B, SteamplayLastTap.A, function () {
+    basic.showIcon(IconNames.Diamond)
+    steamplayMusic.playSound(SteamplaySound.Yes, SteamplayPlayMode.InBackground)
+})

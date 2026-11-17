@@ -10,6 +10,8 @@ namespace steamplayCore {
     /** Custom event source IDs used to run kids' handlers (one per category). */
     export const EVENT_SRC_INPUTS = 0x5350   // "SP"
     export const EVENT_SRC_CONTACTS = 0x5351
+    export const EVENT_SRC_SEQUENCE = 0x5352
+    export const EVENT_SRC_MUSIC = 0x5353
 
     // ---------------------------------------------------------------
     // Hardware version
