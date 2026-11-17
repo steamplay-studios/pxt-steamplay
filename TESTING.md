@@ -1,4 +1,4 @@
-# STEAMPlay - bench test sheet (v0.2.0)
+# STEAMplay - bench test sheet (v0.2.0)
 
 Load the extension's test project (`test.ts`) onto a micro:bit V2.
 The screen shows **S** (single), **D** (double), **L** (long) or **T** (together).
@@ -29,8 +29,8 @@ Tick each row and note anything odd in the last column.
 
 | # | Do this | Expect | OK? | Notes |
 | --- | --- | --- | --- | --- |
-| 12 | Touch the logo once | S with centre dot | | |
-| 13 | Double touch the logo | D with centre dot | | How reliable? __ / 10 |
+| 12 | Touch the logo once | Nothing (in this project the logo is the code key). In a new project with only "on logo single pressed": runs straight away | | |
+| 13 | Hold the logo about 1.5 s, let go | L with centre dot | | |
 | 14 | Hold A, touch logo, let go | T, top-left | | |
 | 15 | Hold B, touch logo, let go | T, top-right | | |
 | 16 | Press A normally while holding the micro:bit by its top edge | S for A, not T | | |
@@ -39,9 +39,10 @@ Tick each row and note anything odd in the last column.
 
 | # | Do this | Expect | OK? | Notes |
 | --- | --- | --- | --- | --- |
-| 17 | Hold the logo 2 s, let go | Nothing (no restart) | | |
+| 17 | Hold the logo 2 s, let go | L with centre dot (no restart) | | |
 | 18 | Hold the logo 3 s+ | Cross appears while still holding | | |
 | 19 | Then let go | Program restarts (happy face) | | |
+| 19b | Hold the logo 3 s, then keep holding the board by its edges | Restarts by itself within 5 s | | |
 
 ## Contacts (P1 to GND)
 
@@ -72,8 +73,9 @@ Tick each row and note anything odd in the last column.
 
 | # | Do this | Expect | OK? | Notes |
 | --- | --- | --- | --- | --- |
-| 30 | Tap A, B, B, A quickly | Diamond and the "yes" sound | | |
-| 31 | Tap A, B, wait 2 s, B, A | Nothing (too slow) | | |
+| 30 | Tap logo, A, B, B quickly | Diamond only (no S or D while typing) | | |
+| 31 | Tap logo, A, wait 2 s, B, B | No diamond; the B B after the gap shows D | | |
+| 31b | Tap logo, B | B shows S (B doesn't fit the code, so it works normally) | | |
 | 32 | Warm the micro:bit with your hand | Up arrow after about 2 °C | | |
 | 33 | Let it cool | Down arrow after about 2 °C | | |
 
@@ -103,9 +105,9 @@ Make a new project with the extension, open the JavaScript tab and paste this in
 let n = 0
 input.onButtonPressed(Button.A, function () {
     basic.showNumber(n)
-    if (n < 10) steamplayMusic.playSound(n, SteamplayPlayMode.InBackground)
-    else steamplayMusic.playSong(n - 10, SteamplayPlayMode.InBackground)
-    n = (n + 1) % 30
+    if (n < 9) steamplayMusic.playSound(n, SteamplayPlayMode.InBackground)
+    else steamplayMusic.playSong(n - 9, SteamplayPlayMode.InBackground)
+    n = (n + 1) % 47
 })
 ```
 
@@ -113,27 +115,45 @@ Mark each one: sounds right / wrong notes / too fast / too slow.
 
 | # | Sound | OK? | Notes |
 | --- | --- | --- | --- |
-| 0–9 | goal, mission complete, boot-up, horn, horn 1, horn 2, countdown, uh-oh, yes, alarm | | |
-| 10 | Waltzing Matilda (check the tune carefully) | | |
-| 11 | William Tell gallop | | |
-| 12 | Hall of the Mountain King | | |
-| 13 | Can-Can | | |
-| 14 | Flight of the Bumblebee | | |
-| 15 | When the Saints Go Marching In | | |
-| 16 | Advance Australia Fair (check against the official PM&C sheet music) | | |
-| 17 | God Save the King | | |
-| 18 | The Star-Spangled Banner | | |
-| 19 | La Marseillaise (check the tune carefully) | | |
-| 20 | O Canada | | |
-| 21 | Toccata and Fugue | | |
-| 22 | Funeral March of a Marionette (check the tune carefully) | | |
-| 23 | Danse Macabre (check the tune carefully) | | |
-| 24 | Jingle Bells | | |
-| 25 | Deck the Halls | | |
-| 26 | We Wish You a Merry Christmas | | |
-| 27 | Silent Night | | |
-| 28 | Hot Cross Buns | | |
-| 29 | Sumer Is Icumen In (check the tune carefully) | | |
+| 0–8 | goal, mission complete, boot-up, horn, horn 1, countdown, uh-oh, yes, alarm | | |
+| 9 | Waltzing Matilda | | |
+| 10 | William Tell gallop (the "da-da-dum" part) | | |
+| 11 | Halloween: Hall of the Mountain King | | |
+| 12 | Can-Can | | |
+| 13 | Flight of the Bumblebee | | |
+| 14 | When the Saints Go Marching In | | |
+| 15 | Advance Australia Fair (check against the official PM&C sheet music) | | |
+| 16 | God Save the King | | |
+| 17 | The Star-Spangled Banner | | |
+| 18 | La Marseillaise (check the tune) | | |
+| 19 | O Canada | | |
+| 20 | Toccata and Fugue | | |
+| 21 | Funeral March of a Marionette (check the tune) | | |
+| 22 | Jingle Bells | | |
+| 23 | Deck the Halls | | |
+| 24 | We Wish You a Merry Christmas | | |
+| 25 | Silent Night | | |
+| 26 | Hot Cross Buns | | |
+| 27 | Sumer Is Icumen In (check the tune) | | |
+| 28 | Halloween: Chopin's Funeral March (check the tune) | | |
+| 29 | Halloween: Dies irae | | |
+| 30 | Beethoven's 5th | | |
+| 31 | Sea shanty: Drunken Sailor | | |
+| 32 | Sea shanty: The Wellerman (check the first chorus line) | | |
+| 33 | Sea shanty: Sailor's Hornpipe | | |
+| 34 | Sea shanty: Blow the Man Down | | |
+| 35 | Nursery: Hey Diddle Diddle (check the tune) | | |
+| 36 | Nursery: Little Bo Peep (check the tune) | | |
+| 37 | Nursery: Twinkle Twinkle Little Star | | |
+| 38 | Nursery: Mary Had a Little Lamb | | |
+| 39 | Nursery: Old MacDonald | | |
+| 40 | Nursery: London Bridge | | |
+| 41 | Nursery: Pop Goes the Weasel | | |
+| 42 | Nursery: Itsy Bitsy Spider | | |
+| 43 | Nursery: The Grand Old Duke of York (check the tune) | | |
+| 44 | Nursery: London's Burning | | |
+| 45 | Nursery: Hickory Dickory Dock | | |
+| 46 | Nursery: Humpty Dumpty | | |
 
 ## Band (2–3 micro:bits)
 
@@ -146,4 +166,40 @@ On each micro:bit: "join band to play [song] as part [1/2/3] radio group [1]", a
 | 43 | Same, press A on part 3 | All start together | | |
 | 44 | Pachelbel's Canon, full length | Still in time at the end | | |
 | 45 | Turn part 1 off halfway | Others keep playing | | |
-| 46 | Each song: Row Row, Sumer, Canon, Jingle Bells | Sounds right together | | |
+| 46 | Each song: Row Row, Sumer, Canon, Jingle Bells, Three Blind Mice, London's Burning | Sounds right together | | |
+
+## Sync checkpoints (2–3 micro:bits)
+
+On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in "on button A pressed":
+"sync checkpoint [1]" then "show icon ✓".
+
+| # | Do this | Expect | OK? | Notes |
+| --- | --- | --- | --- | --- |
+| 47 | Press A on one micro:bit | Nothing yet (waiting) | | |
+| 48 | Press A on the other two, a few seconds apart | All three show ✓ together when the last one is pressed | | |
+| 49 | Press A on only two of them | Those two show ✓ after 5 s | | |
+| 50 | Use with a band on the same radio group | Both work | | |
+
+## Servo board (new project, extension only, board on its own 4×AA pack)
+
+| # | Do this | Expect | OK? | Notes |
+| --- | --- | --- | --- | --- |
+| 51 | "set servo 1 to 45" in on start | All plugged-in servos jump to 90 first, then servo 1 to 45 | | |
+| 52 | Micro motor on channel 2, "set micro motor 2 speed 0" | Stops (if it creeps, try "calibrate stop point") | | |
+| 53 | "move servo 1 to 150 over 2 s" | Smooth move, about 2 s | | |
+| 54 | "wiggle servo 1 by 20 3 times, each 0.5 s" | Three wiggles, back to start | | |
+| 55 | "limit servo 1 to 20–160", then set it to 0 | Stops at 20 | | |
+| 56 | "mirror servo 1 to servo 2", move servo 1 | Servo 2 moves the opposite way | | |
+| 57 | Move 6 servos at once with "don't wait" | Smooth? (and 16 at once?) | | |
+| 58 | Emergency stop while servos move | All servos go floppy, micro motors stop | | |
+
+## Motor board
+
+| # | Do this | Expect | OK? | Notes |
+| --- | --- | --- | --- | --- |
+| 59 | "set motor 1 speed 50", then -50 | Spins one way, then the other | | |
+| 60 | Same for motor 2 | Both directions work (V2) | | |
+| 61 | Play music while motor 2 runs | Motor 2 doesn't twitch | | |
+| 62 | "ramp motor 1 to 80 over 2 s" | Smooth speed-up | | |
+| 63 | Car: forward/left setup, then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
+| 64 | "stop all motors and servos" | Everything stops, program keeps running | | |

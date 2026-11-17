@@ -1,10 +1,10 @@
-// STEAMPlay Inputs - bench test project.
+// STEAMplay Inputs - bench test project.
 // Shows a letter for each gesture so you can see exactly what was detected.
 //   S = single press   D = double press   L = long press   T = pressed together
 // The top row shows which input: left = A, middle = A+B, right = B, centre dot = logo.
 // A 3 s hold shows nothing (cancelled). Holding the logo 3 s is the emergency stop.
 // Touch P1 to GND: the bottom row counts contacts, and serial shows the contact time.
-// Music: boot-up sound at start, goal sound on each contact, "yes" for the secret code,
+// Music: boot-up sound at start, goal sound on each contact,
 // and an LED on P8 (with a resistor to GND) flashes to the beat.
 
 let contacts = 0
@@ -20,19 +20,18 @@ steamplayInputs.emergencyStop(SteamplayStopInput.Logo)
 steamplayInputs.emergencyStopPin(SteamplayPin.P2, 0)
 
 steamplayInputs.onSinglePressed(SteamplayInput.A, function () { show("S", 0) })
-steamplayInputs.onDoublePressed(SteamplayInput.A, function () { show("D", 0) })
+steamplayInputs.onDoublePressed(SteamplayDoubleInput.A, function () { show("D", 0) })
 steamplayInputs.onLongPressed(SteamplayInput.A, function () { show("L", 0) })
 
 steamplayInputs.onSinglePressed(SteamplayInput.B, function () { show("S", 4) })
-steamplayInputs.onDoublePressed(SteamplayInput.B, function () { show("D", 4) })
+steamplayInputs.onDoublePressed(SteamplayDoubleInput.B, function () { show("D", 4) })
 steamplayInputs.onLongPressed(SteamplayInput.B, function () { show("L", 4) })
 
 steamplayInputs.onSinglePressed(SteamplayInput.AB, function () { show("S", 2) })
-steamplayInputs.onDoublePressed(SteamplayInput.AB, function () { show("D", 2) })
+steamplayInputs.onDoublePressed(SteamplayDoubleInput.AB, function () { show("D", 2) })
 steamplayInputs.onLongPressed(SteamplayInput.AB, function () { show("L", 2) })
 
-steamplayInputs.onSinglePressed(SteamplayInput.Logo, function () { show("S", 2); led.plot(2, 2) })
-steamplayInputs.onDoublePressed(SteamplayInput.Logo, function () { show("D", 2); led.plot(2, 2) })
+steamplayInputs.onLongPressed(SteamplayInput.Logo, function () { show("L", 2); led.plot(2, 2) })
 
 steamplayInputs.onPressedTogether(SteamplayCombo.ALogo, function () { show("T", 0) })
 steamplayInputs.onPressedTogether(SteamplayCombo.BLogo, function () { show("T", 4) })
@@ -52,8 +51,7 @@ steamplayMusic.playSound(SteamplaySound.BootUp, SteamplayPlayMode.InBackground)
 steamplayInputs.onTemperatureChange(SteamplayTempChange.Rises, 2, function () { basic.showArrow(ArrowNames.North) })
 steamplayInputs.onTemperatureChange(SteamplayTempChange.Falls, 2, function () { basic.showArrow(ArrowNames.South) })
 
-// Sequence: tap A, B, B, A quickly for a secret code.
-steamplayInputs.onSequence(SteamplayTap.A, SteamplayTap.B, SteamplayTap.B, SteamplayLastTap.A, function () {
-    basic.showIcon(IconNames.Diamond)
-    steamplayMusic.playSound(SteamplaySound.Yes, SteamplayPlayMode.InBackground)
-})
+// Sequence: tap logo, A, B, B quickly for a secret code. The logo is the code key,
+// so A and B don't show S or D while you type it. (Logo single press is tested in
+// TESTING.md with its own project, because the code uses the logo.)
+steamplayInputs.onSequence(SteamplayFirstTap.Logo, SteamplayTap.A, SteamplayTap.B, SteamplayLastTap.B, function () { basic.showIcon(IconNames.Diamond) })

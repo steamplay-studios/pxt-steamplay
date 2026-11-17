@@ -1,7 +1,7 @@
 # pxt-steamplay
 
-Blocks from **STEAMPlay Studios** for the BBC micro:bit, made for kids who build with cardboard and code.
-This first version adds **STEAMPlay Inputs**: smarter buttons, buttons pressed together with the logo,
+Blocks from **STEAMplay Studios** for the BBC micro:bit, made for kids who build with cardboard and code.
+This first version adds **STEAMplay Inputs**: smarter buttons, buttons pressed together with the logo,
 an emergency stop and fast pin contacts and temperature change. Servos, motors, music and light shows are coming next.
 
 Works best on **micro:bit V2**. Button blocks also work on V1. Logo blocks need V2 (the gold logo).
@@ -10,7 +10,7 @@ Works best on **micro:bit V2**. Button blocks also work on V1. Logo blocks need 
 
 1. Open [makecode.microbit.org](https://makecode.microbit.org) and start a project.
 2. Click **Extensions** (at the bottom of the block list).
-3. Paste `https://github.com/steamplay-studios/pxt-steamplay` and pick the STEAMPlay card.
+3. Paste `https://github.com/steamplay-studios/pxt-steamplay` and pick the STEAMplay card.
 
 ## Buttons
 
@@ -19,7 +19,7 @@ Watch **A**, **B**, **A+B** or the **logo**.
 | Block | What you do | When it runs |
 | --- | --- | --- |
 | single pressed | Tap (under 1 s) | 0.4 s after you let go if you also use double press for that input, otherwise straight away |
-| double pressed | Two quick taps | When you let go of the second tap |
+| double pressed | Two quick taps (A, B or A+B) | When you let go of the second tap |
 | long pressed | Hold 1 to 3 s, then let go | When you let go |
 | (cancel) | Hold 3 s or more | Nothing runs |
 
@@ -27,7 +27,7 @@ Watch **A**, **B**, **A+B** or the **logo**.
 steamplayInputs.onSinglePressed(SteamplayInput.A, function () {
     basic.showNumber(1)
 })
-steamplayInputs.onDoublePressed(SteamplayInput.A, function () {
+steamplayInputs.onDoublePressed(SteamplayDoubleInput.A, function () {
     basic.showNumber(2)
 })
 steamplayInputs.onLongPressed(SteamplayInput.A, function () {
@@ -36,18 +36,25 @@ steamplayInputs.onLongPressed(SteamplayInput.A, function () {
 ```
 
 These blocks check the buttons in the background, so they never switch off MakeCode's own button blocks.
-If you use double press, use the STEAMPlay single press block for that input too, because MakeCode's own
+If you use double press, use the STEAMplay single press block for that input too, because MakeCode's own
 "on button pressed" runs on every tap.
 
 ## Sequences (secret codes)
 
-Run code when 3 or 4 quick taps are entered in order, like an arcade cheat code. Pick each tap from
-A, B, logo (V2) and pins P0, P1, P2, P8, P12 and P16; choose "–" in the last slot for a 3-tap code. A pin counts when it is
-connected to GND, such as by an arcade button or switch. Taps must be less than 1.5 s apart; a long press
-starts over. Each tap still runs your other button blocks too.
+Run code when 3 or 4 quick taps are entered in order, like an arcade cheat code.
+
+* The **first tap is the code key**: the logo (V2) or a pin (P0, P1, P2, P8, P12, P16). It tells the
+  micro:bit a code is coming, so the taps after it don't run their own blocks.
+* The other taps can be A, B, the logo or a pin. Choose "–" in the last slot for a 3-tap code.
+* Taps must be less than 1.5 s apart. A wrong tap or a long press ends the code.
+* If a code starts with the logo, a logo tap starts the code, so "on logo single pressed" won't run in
+  that project.
+* If a pin is in a code, don't also use it in an "on pin contact" block, or the contact block will run on
+  every press while you type the code.
+* A pin counts when it is connected to GND, such as by an arcade button or switch.
 
 ```blocks
-steamplayInputs.onSequence(SteamplayTap.A, SteamplayTap.B, SteamplayTap.B, SteamplayLastTap.P2, function () {
+steamplayInputs.onSequence(SteamplayFirstTap.Logo, SteamplayTap.A, SteamplayTap.B, SteamplayLastTap.B, function () {
     basic.showIcon(IconNames.Diamond)
 })
 ```
@@ -62,9 +69,27 @@ steamplayInputs.onPressedTogether(SteamplayCombo.ALogo, function () {
 })
 ```
 
+## Sync checkpoints
+
+Several micro:bits wait for each other at a checkpoint, then all carry on together, eg cars in a dance
+or lights across several builds. Put **join sync group** in on start on every micro:bit (same group and
+number of micro:bits), then put **sync checkpoint** blocks at the safe points in your routine.
+
+```blocks
+steamplayInputs.joinSync(1, 3)
+input.onButtonPressed(Button.A, function () {
+    steamplayInputs.syncCheckpoint(1)
+    basic.showIcon(IconNames.Yes)
+})
+```
+
+Everyone leaves a checkpoint within a few thousandths of a second. If a micro:bit never arrives (switched off
+or out of range), the others carry on after 5 s. Sync uses the radio, so don't add your own radio blocks;
+a band can share the same radio group.
+
 ## Emergency stop
 
-Put this in **on start**. Holding the chosen input for 3 seconds stops all STEAMPlay motors and servos,
+Put this in **on start**. Holding the chosen input for 3 seconds stops all STEAMplay motors and servos,
 shows a cross, and restarts the program when you let go. The logo is a good choice because it is hard to
 press by accident.
 
@@ -126,8 +151,8 @@ steamplayMusic.playSound(SteamplaySound.Goal, SteamplayPlayMode.InBackground)
 steamplayMusic.playSong(SteamplaySong.WaltzingMatilda, SteamplayPlayMode.UntilDone)
 ```
 
-Sounds: goal, mission complete, boot-up, horn, horn 1, horn 2, countdown, uh-oh, yes, alarm.
-Songs include classics, anthems, and Halloween, Christmas, Easter and solstice tunes.
+Sounds: goal, mission complete, boot-up, horn, horn 1, countdown, uh-oh, yes, alarm.
+Songs include classics, anthems, sea shanties, nursery rhymes, and Halloween, Christmas, Easter and solstice tunes.
 
 ## Band
 
@@ -145,7 +170,7 @@ The band uses the radio, so a band project can't also use its own radio blocks.
 
 ## Light sync
 
-Lights on pins follow STEAMPlay music: on the beat, on every note, high or low notes, music energy
+Lights on pins follow STEAMplay music: on the beat, on every note, high or low notes, music energy
 (bright at big moments) or the microphone (V2). Wire an LED with a resistor from the pin to GND, or switch a
 bigger light through a transistor with its own power (share GND).
 
@@ -156,9 +181,67 @@ steamplayMusic.syncPin(SteamplayPin.P2, SteamplaySyncMode.HighNotes)
 
 For your own light show, "on music note" gives each note's pitch and the beat number.
 
+## Servos (Kitronik 16-servo board)
+
+Every servo starts at 90° (the middle) the first time a servo block runs. Give the board its own 4×AA
+battery pack: servos won't move on USB power alone.
+
+```blocks
+steamplayServos.limitServo(SteamplayServo.S1, 20, 160)
+steamplayServos.servoWrite(SteamplayServo.S1, 45)
+steamplayServos.moveServo(SteamplayServo.S1, 150, 2)
+steamplayServos.wiggleServo(SteamplayServo.S1, 20, 3, 0.5)
+```
+
+Micro motors (continuous-rotation servos) plug into the same channels:
+
+```blocks
+steamplayServos.calibrateMicroMotor(SteamplayServo.S2, 0)
+steamplayServos.setMicroMotor(SteamplayServo.S2, 50)
+steamplayServos.rampMicroMotorOff(SteamplayServo.S2, 1)
+```
+
+**Mirror** makes one servo do the opposite of another (30° becomes 150°, speed 50 becomes −50), **copy** makes it
+do the same. Ramps, moves and wiggles wait until they finish, unless you open the block's "+" and choose
+"don't wait".
+
+## Motors (Kitronik motor driver board)
+
+Motor 1 uses P8 and P12, Motor 2 uses P0 and P16 (sound on P0 is turned off; the V2 speaker still plays).
+
+```blocks
+steamplayMotors.setMotor(SteamplayMotor.M1, 50)
+steamplayMotors.rampMotor(SteamplayMotor.M1, -80, 2)
+steamplayMotors.rampMotorOff(SteamplayMotor.M1, 1)
+```
+
+## Driving a car
+
+Tell the micro:bit how your car is wired, then drive. Radius 0 spins on the spot, 50 pivots on one wheel,
+100 makes a wide curve.
+
+```blocks
+steamplayMotors.setupForward(SteamplayTurn.Forwards, SteamplayTurn.Forwards)
+steamplayMotors.setupLeft(SteamplayTurn.Backwards, SteamplayTurn.Forwards)
+steamplayMotors.rampDrive(SteamplayDrive.Forward, 80, 50, 1)
+steamplayMotors.drive(SteamplayDrive.Left, 50, 0)
+```
+
+| Car does on "drive forward" | Fix |
+| --- | --- |
+| Goes backward | Flip both motors in the forward setup |
+| Spins in a circle | Flip the motor going the wrong way |
+| Turns the wrong way on "left" | Swap the left setup's directions |
+
+"stop all motors and servos" stops everything but keeps your program running. The emergency stop also turns
+off both boards.
+
 ## Licence
 
-MIT. Copyright (c) 2026 STEAMPlay Studios.
+MIT. Copyright (c) 2026 STEAMplay Studios.
+
+Includes code from Kitronik's pxt-kitronik-I2C-16-servo and pxt-kitronik-motor-driver extensions,
+MIT licence, Copyright (c) 2017 Kitronik Ltd.
 
 ## Supported targets
 

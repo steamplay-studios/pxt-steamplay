@@ -1,12 +1,12 @@
 /**
- * STEAMPlay Music: sound effects, short songs, a band for 2–3 micro:bits,
+ * STEAMplay Music: sound effects, short songs, a band for 2–3 micro:bits,
  * and lights that follow the music.
  *
  * All tunes are original sounds or our own simple versions of out-of-copyright
  * melodies. One sound plays at a time: a new sound replaces the one playing.
  */
 
-/** STEAMPlay sound effects. */
+/** STEAMplay sound effects. */
 enum SteamplaySound {
     //% block="goal"
     Goal = 0,
@@ -18,26 +18,22 @@ enum SteamplaySound {
     Horn = 3,
     //% block="horn 1"
     Horn1 = 4,
-    //% block="horn 2"
-    Horn2 = 5,
     //% block="countdown"
-    Countdown = 6,
+    Countdown = 5,
     //% block="uh-oh"
-    UhOh = 7,
+    UhOh = 6,
     //% block="yes"
-    Yes = 8,
+    Yes = 7,
     //% block="alarm"
-    Alarm = 9
+    Alarm = 8
 }
 
-/** STEAMPlay songs (short snippets, 5–10 s). */
+/** STEAMplay songs (short snippets, 5–10 s). */
 enum SteamplaySong {
     //% block="Waltzing Matilda"
     WaltzingMatilda = 0,
     //% block="William Tell gallop"
     WilliamTell = 1,
-    //% block="Hall of the Mountain King"
-    MountainKing = 2,
     //% block="Can-Can"
     CanCan = 3,
     //% block="Flight of the Bumblebee"
@@ -58,20 +54,58 @@ enum SteamplaySong {
     Toccata = 11,
     //% block="Halloween: Funeral March of a Marionette"
     FuneralMarch = 12,
-    //% block="Halloween: Danse Macabre"
-    DanseMacabre = 13,
+    //% block="Halloween: Hall of the Mountain King"
+    MountainKing = 2,
+    //% block="Halloween: Chopin's Funeral March"
+    ChopinFuneralMarch = 19,
+    //% block="Halloween: Dies irae"
+    DiesIrae = 20,
+    //% block="Beethoven's 5th"
+    Beethoven5 = 21,
+    //% block="Sea shanty: Drunken Sailor"
+    DrunkenSailor = 22,
+    //% block="Sea shanty: The Wellerman"
+    Wellerman = 23,
+    //% block="Sea shanty: Sailor's Hornpipe"
+    SailorsHornpipe = 24,
+    //% block="Sea shanty: Blow the Man Down"
+    BlowTheManDown = 25,
+    //% block="Nursery: Hey Diddle Diddle"
+    HeyDiddle = 26,
+    //% block="Nursery: Little Bo Peep"
+    BoPeep = 27,
+    //% block="Nursery: Twinkle Twinkle Little Star"
+    Twinkle = 28,
+    //% block="Nursery: Mary Had a Little Lamb"
+    MaryLamb = 29,
+    //% block="Nursery: Old MacDonald"
+    OldMacDonald = 30,
+    //% block="Nursery: London Bridge"
+    LondonBridge = 31,
+    //% block="Nursery: Pop Goes the Weasel"
+    PopWeasel = 32,
+    //% block="Nursery: Itsy Bitsy Spider"
+    ItsyBitsy = 33,
+    //% block="Nursery: The Grand Old Duke of York"
+    GrandOldDuke = 34,
+    //% block="Nursery: London's Burning"
+    LondonsBurning = 35,
+    //% block="Nursery: Hickory Dickory Dock"
+    HickoryDickory = 36,
+    //% block="Nursery: Humpty Dumpty"
+    HumptyDumpty = 37,
     //% block="Christmas: Jingle Bells"
-    JingleBells = 14,
+    JingleBells = 13,
     //% block="Christmas: Deck the Halls"
-    DeckTheHalls = 15,
+    DeckTheHalls = 14,
     //% block="Christmas: We Wish You a Merry Christmas"
-    WeWishYou = 16,
+    WeWishYou = 15,
     //% block="Christmas: Silent Night"
-    SilentNight = 17,
+    SilentNight = 16,
     //% block="Easter: Hot Cross Buns"
-    HotCrossBuns = 18,
+    HotCrossBuns = 17,
     //% block="solstice: Sumer Is Icumen In"
-    Sumer = 19
+    Sumer = 18
 }
 
 /** Songs for the band: each micro:bit plays one part. */
@@ -85,7 +119,11 @@ enum SteamplayBandSong {
     //% block="Pachelbel's Canon"
     Canon = 3,
     //% block="Jingle Bells (3 parts)"
-    JingleBells = 4
+    JingleBells = 4,
+    //% block="Three Blind Mice (round)"
+    ThreeBlindMice = 5,
+    //% block="London's Burning (round)"
+    LondonsBurning = 6
 }
 
 /** Keep going straight away, or wait for the sound to finish. */
@@ -115,7 +153,7 @@ enum SteamplaySyncMode {
 /**
  * Sound effects, songs, a band and light shows.
  */
-//% color="#CB6926" weight=108 icon="" block="STEAMPlay Music"
+//% color="#CB6926" weight=108 icon="\uf001" block="STEAMplay Music"
 //% groups=['Sounds', 'Songs', 'Band', 'Light sync']
 namespace steamplayMusic {
     // ---------------------------------------------------------------
@@ -132,19 +170,18 @@ namespace steamplayMusic {
             case 2: return "240|16|C4:1 E4:1 G4:1 C5:1 E5:1 G5:1 !C6:6"
             case 3: return "120|16|!A4:3 R:1 !A4:6"
             case 4: return "150|16|C5:1 C5:1 C5:1 F5:2 R:1 !A5:3 R:3 C5:1 C5:1 C5:1 F5:2 R:1 !A5:6"
-            case 5: return "150|16|G5:2 E5:2 C5:4 C5:4 C5:2 D5:2 E5:2 F5:2 G5:4 G5:4 G5:4 !E5:6"
-            case 6: return "120|16|C5:2 R:6 C5:2 R:6 C5:2 R:6 !C6:8"
-            case 7: return "120|16|E5:3 R:1 !C5:6"
-            case 8: return "120|16|C5:2 R:1 !G5:5"
-            case 9: return "120|16|!A5:4 E5:4 !A5:4 E5:4 !A5:4 E5:4"
+            case 5: return "120|16|C5:2 R:6 C5:2 R:6 C5:2 R:6 !C6:8"
+            case 6: return "120|16|E5:3 R:1 !C5:6"
+            case 7: return "120|16|C5:2 R:1 !G5:5"
+            case 8: return "120|16|!A5:4 E5:4 !A5:4 E5:4 !A5:4 E5:4"
         }
         return ""
     }
 
     function songData(s: number): string {
         switch (s) {
-            case 0: return "100|16|C5:4 C5:2 B4:2 A4:4 G4:4 A4:4 A4:2 G4:2 F4:4 E4:4 G4:2 G4:2 A4:2 G4:2 F4:2 E4:2 D4:2 C4:2 D4:4 E4:4 !C4:8"
-            case 1: return "130|16|G4:1 G4:1 G4:2 G4:1 G4:1 G4:2 G4:1 G4:1 C5:2 D5:2 !E5:2 G4:1 G4:1 G4:2 G4:1 G4:1 G4:2 G4:1 G4:1 C5:2 E5:2 D5:2 G4:1 G4:1 G4:2 G4:1 G4:1 G4:2 G4:1 G4:1 C5:2 D5:2 E5:2 C5:2 E5:2 !G5:2 !C6:4"
+            case 0: return "110|16|G4:4 G4:2 G4:2 G4:6 E4:2 C5:4 C5:2 C5:2 !B4:6 A4:2 G4:2 G4:2 G4:2 A4:2 G4:2 G4:2 G4:2 F4:2 E4:4 D4:4 !C4:8"
+            case 1: return "280|16|G4:2 G4:2 G4:4 G4:2 G4:2 G4:4 G4:4 C5:4 D5:4 !E5:4 G4:2 G4:2 G4:4 G4:2 G4:2 C5:4 E5:4 D5:4 B4:4 G4:4 G4:2 G4:2 G4:4 G4:2 G4:2 G4:4 G4:4 C5:4 D5:4 E5:4 C5:2 E5:2 !G5:10 F5:2 E5:2 D5:2 C5:4 E5:4 !C5:8"
             case 2: return "120|16|A4:2 B4:2 C5:2 D5:2 E5:2 C5:2 E5:4 D#5:2 B4:2 D#5:4 D5:2 A#4:2 D5:4 A4:2 B4:2 C5:2 D5:2 E5:2 C5:2 E5:2 A5:2 G5:2 E5:2 C5:2 E5:2 !G5:8"
             case 3: return "150|16|C5:4 D5:2 F5:2 E5:2 D5:2 G5:4 G5:4 G5:2 A5:2 E5:2 F5:2 D5:4 D5:4 D5:2 F5:2 E5:2 D5:2 C5:2 !C6:2 B5:2 A5:2 G5:2 F5:2 E5:2 D5:2 !C5:4"
             case 4: return "150|16|E5:1 D#5:1 D5:1 C#5:1 D5:1 C#5:1 C5:1 B4:1 C5:1 B4:1 A#4:1 A4:1 G#4:1 G4:1 F#4:1 F4:1 E4:1 D#4:1 D4:1 C#4:1 D4:1 C#4:1 C4:1 B3:1 C4:1 B3:1 A#3:1 A3:1 G#3:1 G3:1 F#3:1 F3:1 E4:1 F4:1 E4:1 D#4:1 E4:1 F4:1 E4:1 D#4:1 E4:1 F4:1 F#4:1 G4:1 G#4:1 A4:1 A#4:1 B4:1 !E5:8"
@@ -155,20 +192,38 @@ namespace steamplayMusic {
             case 9: return "110|16|D4:3 D4:1 G4:4 G4:4 A4:4 A4:4 !D5:6 B4:2 G4:3 G4:1 B4:3 G4:1 E4:8 C5:6 A4:2 F#4:4 !G4:12"
             case 10: return "90|16|E4:8 G4:6 G4:2 !C4:12 R:4 D4:4 E4:4 F4:4 G4:4 A4:4 !D4:12"
             case 11: return "100|16|A5:1 G5:1 !A5:10 R:4 G5:1 F5:1 E5:1 D5:1 C#5:4 !D5:12 R:4 A4:1 G4:1 A4:10 R:4 E4:4 F4:4 C#4:4 !D4:12"
-            case 12: return "120|12|A4:2 D5:4 D5:2 C#5:4 D5:2 E5:4 F5:2 E5:4 D5:2 C#5:4 D5:2 E5:6 !A4:6 D5:4 D5:2 C#5:4 D5:2 E5:4 F5:2 G5:4 F5:2 E5:4 C#5:2 !D5:12"
-            case 13: return "130|12|A4:4 !D#5:8 A4:4 !D#5:8 D5:4 D5:4 D5:4 D5:4 C5:2 A#4:2 C5:4 D5:4 D5:4 D5:4 D5:4 C5:2 A#4:2 C5:4 D5:4 F5:4 D5:4 C5:4 A#4:4 A4:4 !G4:12"
-            case 14: return "180|16|E5:4 E5:4 E5:8 E5:4 E5:4 E5:8 E5:4 G5:4 C5:6 D5:2 !E5:16 F5:4 F5:4 F5:6 F5:2 F5:4 E5:4 E5:4 E5:2 E5:2 G5:4 G5:4 F5:4 D5:4 !C5:16"
-            case 15: return "130|16|G5:6 F5:2 E5:4 D5:4 C5:4 D5:4 E5:4 C5:4 D5:2 E5:2 F5:2 D5:2 E5:6 D5:2 C5:4 B4:4 !C5:8"
-            case 16: return "150|12|D4:4 G4:4 G4:2 A4:2 G4:2 F#4:2 E4:4 E4:4 E4:4 A4:4 A4:2 B4:2 A4:2 G4:2 F#4:4 D4:4 D4:4 B4:4 B4:2 C5:2 B4:2 A4:2 G4:4 E4:4 D4:2 D4:2 E4:4 A4:4 F#4:4 !G4:12"
-            case 17: return "110|12|G4:6 A4:2 G4:4 E4:12 G4:6 A4:2 G4:4 E4:12 !D5:8 D5:4 B4:12 C5:8 C5:4 !G4:12"
-            case 18: return "110|16|E5:4 D5:4 C5:8 E5:4 D5:4 C5:8 C5:2 C5:2 C5:2 C5:2 D5:2 D5:2 D5:2 D5:2 E5:4 D5:4 !C5:8"
-            case 19: return "120|12|" + sumerMelody()
+            case 12: return "100|12|A4:4 C5:2 C5:2 B4:2 A4:2 B4:4 C5:2 !D5:6 A4:4 C5:2 C5:2 B4:2 A4:2 B4:4 G#4:2 !A4:6"
+            case 13: return "180|16|E5:4 E5:4 E5:8 E5:4 E5:4 E5:8 E5:4 G5:4 C5:6 D5:2 !E5:16 F5:4 F5:4 F5:6 F5:2 F5:4 E5:4 E5:4 E5:2 E5:2 G5:4 G5:4 F5:4 D5:4 !C5:16"
+            case 14: return "130|16|G5:6 F5:2 E5:4 D5:4 C5:4 D5:4 E5:4 C5:4 D5:2 E5:2 F5:2 D5:2 E5:6 D5:2 C5:4 B4:4 !C5:8"
+            case 15: return "150|12|D4:4 G4:4 G4:2 A4:2 G4:2 F#4:2 E4:4 E4:4 E4:4 A4:4 A4:2 B4:2 A4:2 G4:2 F#4:4 D4:4 D4:4 B4:4 B4:2 C5:2 B4:2 A4:2 G4:4 E4:4 D4:2 D4:2 E4:4 A4:4 F#4:4 !G4:12"
+            case 16: return "110|12|G4:6 A4:2 G4:4 E4:12 G4:6 A4:2 G4:4 E4:12 !D5:8 D5:4 B4:12 C5:8 C5:4 !G4:12"
+            case 17: return "110|16|E5:4 D5:4 C5:8 E5:4 D5:4 C5:8 C5:2 C5:2 C5:2 C5:2 D5:2 D5:2 D5:2 D5:2 E5:4 D5:4 !C5:8"
+            case 18: return "120|12|" + sumerMelody()
+            case 19: return "60|16|A#4:4 A#4:3 A#4:1 A#4:8 C#5:3 C5:1 C5:3 A#4:1 A#4:3 A4:1 !A#4:4 R:8 A#4:4 A#4:3 A#4:1 !A#4:8"
+            case 20: return "80|16|F4:4 E4:4 F4:4 D4:4 E4:4 C4:4 D4:4 !D4:12 R:4 F4:4 E4:4 F4:4 !D4:12"
+            case 21: return "108|16|R:2 G4:2 G4:2 G4:2 !D#4:12 R:2 F4:2 F4:2 F4:2 !D4:16"
+            case 22: return "145|16|A4:4 A4:2 A4:2 A4:4 A4:2 A4:2 A4:4 D4:4 F4:4 A4:4 G4:4 G4:2 G4:2 G4:4 G4:2 G4:2 G4:4 C4:4 E4:4 G4:4 A4:4 A4:2 A4:2 A4:4 A4:2 A4:2 A4:4 B4:4 C5:4 D5:4 C5:4 A4:4 G4:4 E4:4 !D4:8 D4:8"
+            case 23: return "120|16|G4:2 C5:2 C5:2 C5:2 C5:2 D#5:2 G5:2 G5:2 !G5:8 G#5:2 G#5:2 F5:2 F5:2 F5:2 G#5:2 !C6:4 R:4 G5:2 G#5:2 F5:2 F5:2 F5:2 G#5:2 C6:2 G5:2 G5:4 R:2 C6:2 C6:2 G#5:2 G#5:2 A#5:2 A#5:2 G5:2 G5:4 R:2 G5:2 G#5:2 F5:2 D#5:2 D5:2 !C5:8"
+            case 24: return "150|16|G5:2 F#5:2 G5:4 G4:4 G4:4 D5:2 C5:2 B4:2 D5:2 G5:2 F#5:2 G5:2 B5:2 A5:2 G5:2 A5:4 A4:4 A4:4 A4:2 G4:2 F#4:2 A4:2 D5:4 D5:4 E5:2 F#5:2 G5:2 F#5:2 E5:2 D5:2 E5:2 D5:2 C5:2 B4:2 C5:2 B4:2 A4:2 G4:2 G4:2 F#4:2 E4:2 D4:2 E4:2 G4:2 F#4:2 A4:2 G4:2 B4:2 A4:2 C5:2 B4:4 G4:4 !G4:8"
+            case 25: return "130|12|F4:2 A4:2 C5:3 D5:1 C5:2 A4:2 F4:2 A4:2 C5:3 D5:1 C5:2 A4:2 F4:2 A4:2 C5:6 D5:6 A#4:3 A4:1 A#4:2 G4:4 A4:2 A#4:3 A4:1 A#4:2 G4:2 E4:2 G4:2 A#4:2 A4:2 G4:2 D5:4 F5:2 C5:3 C5:1 C5:2 C5:4 A#4:2 A4:3 G4:1 A4:2 !F4:6"
+            case 26: return "120|12|C5:2 C5:2 E5:2 E5:2 D5:4 D5:4 E5:2 C5:4 C5:2 E5:2 E5:2 A5:2 G5:2 E5:4 F5:2 F5:2 E5:2 E5:2 D5:4 C5:2 D5:2 E5:2 !C5:6"
+            case 27: return "120|12|C5:2 E5:2 G5:2 A5:2 G5:2 E5:2 C5:2 C5:2 E5:2 G5:2 A5:4 G5:2 E5:2 C5:2 D5:2 F5:4 A5:2 C6:2 A5:2 F5:2 D5:4 C5:2 E5:2 G5:2 A5:2 G5:2 E5:2 !C5:12"
+            case 28: return "110|16|C5:4 C5:4 G5:4 G5:4 A5:4 A5:4 G5:8 F5:4 F5:4 E5:4 E5:4 D5:4 D5:4 !C5:8"
+            case 29: return "150|16|E5:4 D5:4 C5:4 D5:4 E5:4 E5:4 E5:8 D5:4 D5:4 D5:8 E5:4 G5:4 G5:8 E5:4 D5:4 C5:4 D5:4 E5:4 E5:4 E5:4 E5:4 D5:4 D5:4 E5:4 D5:4 !C5:16"
+            case 30: return "145|16|C5:4 C5:4 C5:4 G4:4 A4:4 A4:4 G4:8 E5:4 E5:4 D5:4 D5:4 !C5:12 G4:4 C5:4 C5:4 C5:4 G4:4 A4:4 A4:4 G4:8 E5:4 E5:4 D5:4 D5:4 !C5:12"
+            case 31: return "130|16|G5:3 A5:1 G5:2 F5:2 E5:4 F5:4 G5:8 D5:4 E5:4 F5:8 E5:4 F5:4 G5:8 G5:3 A5:1 G5:2 F5:2 E5:4 F5:4 G5:8 D5:8 G5:8 E5:4 !C5:12"
+            case 32: return "140|12|G4:4 G4:2 A4:4 A4:2 B4:2 D5:2 B4:2 G4:4 D4:2 G4:4 G4:2 A4:4 A4:2 B4:6 G4:4 D4:2 G4:4 G4:2 A4:4 A4:2 B4:2 D5:2 B4:2 G4:6 !E5:6 A4:4 C5:2 B4:6 !G4:6"
+            case 33: return "130|12|G4:2 C5:4 C5:2 C5:4 D5:2 E5:6 E5:4 E5:2 D5:4 C5:2 D5:4 E5:2 C5:12 E5:6 E5:4 F5:2 G5:6 G5:6 F5:4 E5:2 F5:4 G5:2 !E5:12"
+            case 34: return "140|16|F#5:2 E5:2 D5:4 A4:4 F#4:4 A4:4 D5:6 D5:2 D5:4 D5:4 C#5:4 E5:4 E5:4 E5:4 E5:6 A4:2 B4:2 C#5:2 D5:2 E5:2 F#5:6 F#5:2 F#5:4 A5:4 G5:4 F#5:4 E5:4 D5:4 C#5:4 A4:4 D5:2 C#5:2 B4:2 C#5:2 !D5:12"
+            case 35: return "120|8|D4:2 D4:2 G4:4 D4:2 D4:2 G4:4 A4:2 A4:2 B4:4 A4:2 A4:2 B4:4 !D5:4 D4:4 !D5:4 D4:4 D5:2 C5:2 B4:4 D5:2 C5:2 !B4:4"
+            case 36: return "120|12|E4:2 F4:2 G4:2 G4:2 A4:2 B4:2 C5:6 G4:2 E4:2 F4:2 G4:2 G4:2 A4:2 B4:2 C5:6 G4:2 C5:2 C5:2 B4:2 B4:2 A4:2 A4:2 G4:6 G4:2 A4:2 G4:2 F4:2 E4:2 D4:2 !C4:6"
+            case 37: return "120|12|E4:4 G4:2 F4:4 A4:2 G4:2 A4:2 B4:2 C5:6 E4:4 G4:2 F4:4 A4:2 G4:2 E4:2 C4:2 D4:6 E4:2 E4:2 G4:2 F4:2 F4:2 A4:2 G4:2 A4:2 B4:2 C5:6 E5:2 E5:2 C5:2 F5:2 F5:2 E5:2 D5:2 C5:2 B4:2 !C5:6"
         }
         return ""
     }
 
     function sumerMelody(): string {
-        return "C5:4 A#4:2 A4:4 A#4:2 C5:4 C5:2 C5:4 A4:2 A#4:4 G4:2 A4:4 F4:2 G4:4 E4:2 !F4:6 R:6"
+        return "C5:4 B4:2 A4:4 B4:2 C5:4 C5:2 B4:1 A4:1 G4:2 E4:4 E4:2 F4:4 D4:2 E4:6 R:6 C4:4 E4:2 D4:4 F4:2 E4:4 E4:2 D4:4 C4:2 E4:4 G4:2 A4:4 A4:2 !G4:12"
     }
 
     // Band parts: a part list, separated by "/". Rounds use one melody and staggered entries.
@@ -183,6 +238,8 @@ namespace steamplayMusic {
             case 4: return "180|16|E5:4 E5:4 E5:8 E5:4 E5:4 E5:8 E5:4 G5:4 C5:6 D5:2 !E5:16 F5:4 F5:4 F5:6 F5:2 F5:4 E5:4 E5:4 E5:2 E5:2 E5:4 D5:4 D5:4 E5:4 D5:8 !G5:8" +
                 "/C5:4 C5:4 C5:8 C5:4 C5:4 C5:8 C5:4 E5:4 G4:6 B4:2 C5:16 A4:4 A4:4 A4:6 A4:2 A4:4 G4:4 G4:4 G4:2 G4:2 G4:4 B4:4 B4:4 C5:4 B4:8 B4:8" +
                 "/C4:8 G3:8 C4:8 G3:8 C4:8 G3:8 C4:8 E4:8 F3:8 C4:8 C4:8 G3:8 G3:8 D4:8 G3:8 B3:8"
+            case 5: return round("160|12|E5:6 D5:6 C5:12 E5:6 D5:6 C5:12 G5:6 F5:4 F5:2 E5:12 G5:6 F5:4 F5:2 E5:10 G5:2 C6:4 C6:2 B5:2 A5:2 B5:2 C6:4 G5:2 G5:4 G5:2 C6:4 C6:2 B5:2 A5:2 B5:2 C6:4 G5:2 G5:4 G5:2 C6:4 C6:2 B5:2 A5:2 B5:2 C6:4 G5:2 G5:4 F5:2 E5:6 D5:6 !C5:12", 4, 3)
+            case 6: return round("120|8|D4:2 D4:2 G4:4 D4:2 D4:2 G4:4 A4:2 A4:2 B4:4 A4:2 A4:2 B4:4 !D5:4 D4:4 !D5:4 D4:4 D5:2 C5:2 B4:4 D5:2 C5:2 !B4:4 D4:2 D4:2 G4:4 D4:2 D4:2 G4:4 A4:2 A4:2 B4:4 A4:2 A4:2 B4:4 !D5:4 D4:4 !D5:4 D4:4 D5:2 C5:2 B4:4 D5:2 C5:2 !B4:4", 2, 3)
         }
         return ""
     }
@@ -351,6 +408,7 @@ namespace steamplayMusic {
 
     // Band state
     let bandSong = -1
+    let bandListening = false
     let bandPart = 1
     let bandBarNo = -1
     let bandBarAt = 0
@@ -448,8 +506,7 @@ namespace steamplayMusic {
     // ---------------------------------------------------------------
 
     /**
-     * Play a STEAMPlay sound effect. A new sound replaces any sound that is playing.
-     * "in background" lets your code keep going; "until done" waits for the sound to end.
+     * Plays a STEAMplay sound. A new sound replaces the one playing.
      * @param sound the sound to play, eg: SteamplaySound.Goal
      * @param mode keep going or wait, eg: SteamplayPlayMode.InBackground
      */
@@ -461,9 +518,7 @@ namespace steamplayMusic {
     }
 
     /**
-     * Play a short song (5–10 s). These are our own simple versions of tunes that are
-     * free to use. A new sound replaces any sound that is playing.
-     * Lights set with "sync pin to music" follow the song.
+     * Plays a short song. A new sound replaces the one playing.
      * @param song the song to play, eg: SteamplaySong.WaltzingMatilda
      * @param mode keep going or wait, eg: SteamplayPlayMode.InBackground
      */
@@ -475,10 +530,10 @@ namespace steamplayMusic {
     }
 
     /**
-     * Stop the STEAMPlay sound or song that is playing, and turn music lights off.
+     * Stops STEAMplay music and turns music lights off.
      */
     //% blockId=steamplay_stop_music
-    //% block="stop STEAMPlay music"
+    //% block="stop STEAMplay music"
     //% group="Songs" weight=85
     export function stopMusic() {
         setup()
@@ -486,19 +541,17 @@ namespace steamplayMusic {
     }
 
     /**
-     * True while a STEAMPlay sound or song is playing.
+     * True while a STEAMplay sound or song is playing.
      */
     //% blockId=steamplay_music_playing
-    //% block="STEAMPlay music is playing"
+    //% block="STEAMplay music is playing"
     //% group="Songs" weight=84
     export function isPlaying(): boolean {
         return playing
     }
 
     /**
-     * Run code each time a new note starts in a STEAMPlay sound, song or band part.
-     * Drag out "note" (the pitch in Hz, higher = higher note) and "beat"
-     * (counts 1, 2, 3… from the start) to make your own light show.
+     * Runs on each new note. Drag out note (pitch) and beat to make your own light show.
      */
     //% blockId=steamplay_on_music_note
     //% block="on music note $note beat $beat"
@@ -535,10 +588,7 @@ namespace steamplayMusic {
     }
 
     /**
-     * Put this micro:bit in a band. Use it in "on start" on each micro:bit, with the
-     * same song and radio group but a different part (1, 2 or 3).
-     * Part 1 keeps time for everyone. The band uses the radio, so don't add your own
-     * radio blocks to a band project.
+     * Put in on start on each micro:bit: same song and group, a different part (1, 2 or 3). Part 1 keeps time. Don't add your own radio blocks.
      * @param song the band song, eg: SteamplayBandSong.FrereJacques
      * @param part which part this micro:bit plays, eg: 1
      * @param group radio group shared by the whole band, eg: 1
@@ -552,20 +602,18 @@ namespace steamplayMusic {
         setup()
         bandSong = song
         bandPart = Math.max(1, Math.min(3, part))
-        radio.setGroup(group)
-        radio.onReceivedValue(function (name: string, value: number) {
-            if (name == "spgo") {
-                startBandHere()
-            } else if (name == "spbar") {
-                bandBarNo = value
-                bandBarAt = control.millis()
-            }
+        steamplayCore.useRadioGroup(group)
+        if (bandListening) return   // already set up (eg the block is in "forever")
+        bandListening = true
+        steamplayCore.onRadio("spgo", function (name: string, value: number) { startBandHere() })
+        steamplayCore.onRadio("spbar", function (name: string, value: number) {
+            bandBarNo = value
+            bandBarAt = control.millis()
         })
     }
 
     /**
-     * Start the whole band playing together. Use it on any one band micro:bit,
-     * eg in "on button A pressed".
+     * Starts the whole band together. Put it in a button block (eg on button A pressed) on any band micro:bit, not in forever.
      */
     //% blockId=steamplay_start_band
     //% block="start the band"
@@ -582,11 +630,7 @@ namespace steamplayMusic {
     // ---------------------------------------------------------------
 
     /**
-     * Make a light on a pin follow STEAMPlay music. Wire an LED (with a resistor)
-     * from the pin to GND, or switch a bigger light through a transistor (share GND).
-     * Modes: beat, every note, high notes, low notes, music energy (bright at big moments),
-     * or microphone (follows the room's sound, micro:bit V2).
-     * Use a different pin for each light. Put this in "on start".
+     * A light on this pin follows the music. Wire an LED and resistor from the pin to GND. Put in on start.
      * @param pin the pin for the light, eg: SteamplayPin.P1
      * @param mode how the light follows the music, eg: SteamplaySyncMode.Beat
      */
@@ -603,10 +647,12 @@ namespace steamplayMusic {
             lightModes.push(mode)
             lightPeriodSet.push(false)
             i = lightPins.length - 1
-        } else {
+            setLight(i, 0)
+        } else if (lightModes[i] != mode) {
+            // Only a real change resets the light, so the block is safe in "forever" too.
             lightModes[i] = mode
+            setLight(i, 0)
         }
-        setLight(i, 0)
         if (mode == SteamplaySyncMode.Microphone && steamplayCore.isV2()) startMicrophone()
     }
 }

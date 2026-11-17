@@ -1,10 +1,10 @@
 /**
- * STEAMPlay Studios MakeCode extension - shared helpers.
- * These functions have no blocks. Other STEAMPlay files use them.
- * Copyright (c) 2026 STEAMPlay Studios. MIT licence.
+ * STEAMplay Studios MakeCode extension - shared helpers.
+ * These functions have no blocks. Other STEAMplay files use them.
+ * Copyright (c) 2026 STEAMplay Studios. MIT licence.
  */
 namespace steamplayCore {
-    /** STEAMPlay orange, sampled from the logo. */
+    /** STEAMplay orange, sampled from the logo. */
     export const ORANGE = 0xCB6926
 
     /** Custom event source IDs used to run kids' handlers (one per category). */
@@ -28,14 +28,14 @@ namespace steamplayCore {
     }
 
     // ---------------------------------------------------------------
-    // Pin claims: which STEAMPlay feature is using each general-purpose pin
+    // Pin claims: which STEAMplay feature is using each general-purpose pin
     // ---------------------------------------------------------------
     // Owner names: "motor", "contact", "light". Stored as parallel arrays.
     let _claimPins: number[] = []
     let _claimOwners: string[] = []
 
     /**
-     * Claim a pin for a STEAMPlay feature. If another feature already uses it,
+     * Claim a pin for a STEAMplay feature. If another feature already uses it,
      * show a cross and the pin name on the LED screen.
      * Also turns off sound on P0 when P0 is claimed, so music can't disturb it.
      * Returns true if the pin was free (or already ours).
@@ -79,10 +79,50 @@ namespace steamplayCore {
         _stopHandlers.push(h)
     }
 
-    /** Turn off every motor and servo that STEAMPlay knows about. */
+    // "stop all motors and servos": like the emergency stop for motion only (music keeps going,
+    // the program keeps running).
+    let _motionStopHandlers: (() => void)[] = []
+    export function addMotionStopHandler(h: () => void) {
+        _motionStopHandlers.push(h)
+    }
+    export function stopAllMotion() {
+        for (let i = 0; i < _motionStopHandlers.length; i++) _motionStopHandlers[i]()
+    }
+
+    /** Turn off every motor and servo that STEAMplay knows about. */
     export function stopEverything() {
         for (let i = 0; i < _stopHandlers.length; i++) {
             _stopHandlers[i]()
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Shared radio: MakeCode allows only one "on radio received" handler, so the band
+    // and sync blocks share this one and get the messages that start with their prefix.
+    // ---------------------------------------------------------------
+    let _radioPrefixes: string[] = []
+    let _radioHandlers: ((name: string, value: number) => void)[] = []
+    let _radioListening = false
+    let _radioGroup = -1
+
+    /** Run handler for every radio value whose name starts with prefix. */
+    export function onRadio(prefix: string, handler: (name: string, value: number) => void) {
+        _radioPrefixes.push(prefix)
+        _radioHandlers.push(handler)
+        if (_radioListening) return
+        _radioListening = true
+        radio.onReceivedValue(function (name: string, value: number) {
+            for (let i = 0; i < _radioPrefixes.length; i++) {
+                const p = _radioPrefixes[i]
+                if (name.length >= p.length && name.substr(0, p.length) == p) _radioHandlers[i](name, value)
+            }
+        })
+    }
+
+    /** Set the radio group once (the band and sync must use the same group). */
+    export function useRadioGroup(group: number) {
+        if (group == _radioGroup) return
+        _radioGroup = group
+        radio.setGroup(group)
     }
 }
