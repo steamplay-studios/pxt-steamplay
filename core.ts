@@ -97,6 +97,46 @@ namespace steamplayCore {
     }
 
     // ---------------------------------------------------------------
+    // Music now playing, so servos, motors and lights can follow one song or sound.
+    // Music ids: 100 + song, 200 + sound, 300 + band song. 0 = nothing playing.
+    // A choice is one of those, or 1 = any song, 2 = any sound, 3 = any music.
+    // ---------------------------------------------------------------
+    let _musicNow = 0
+    let _musicListeners: ((started: boolean, music: number) => void)[] = []
+
+    /** h(true, music) when music starts, h(false, music) when it ends, is stopped or replaced. */
+    export function onMusicChange(h: (started: boolean, music: number) => void) {
+        _musicListeners.push(h)
+    }
+
+    export function musicNow(): number {
+        return _musicNow
+    }
+
+    export function musicStarted(music: number) {
+        musicEnded()
+        _musicNow = music
+        for (let i = 0; i < _musicListeners.length; i++) _musicListeners[i](true, music)
+    }
+
+    export function musicEnded() {
+        const m = _musicNow
+        if (m == 0) return
+        _musicNow = 0
+        for (let i = 0; i < _musicListeners.length; i++) _musicListeners[i](false, m)
+    }
+
+    /** Does this music (an id) belong to this choice? */
+    export function musicMatches(choice: number, music: number): boolean {
+        if (music <= 0 || choice <= 0) return false
+        if (choice == 3) return true
+        const isSound = music >= 200 && music < 300
+        if (choice == 1) return !isSound
+        if (choice == 2) return isSound
+        return choice == music
+    }
+
+    // ---------------------------------------------------------------
     // Shared radio: MakeCode allows only one "on radio received" handler, so the band
     // and sync blocks share this one and get the messages that start with their prefix.
     // ---------------------------------------------------------------

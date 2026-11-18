@@ -1,7 +1,7 @@
 {
     "name": "pxt-steamplay",
     "displayName": "STEAMplay Studios",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "STEAMplay Studios blocks for micro:bit: smart buttons (single, double, long press, secret codes), sync checkpoints, emergency stops, fast pin contacts, temperature change, sound effects, songs, a band for 2–3 micro:bits, music light shows, and the Kitronik 16-servo and motor driver boards with micro motors, smooth moves, ramps, mirroring and car driving.",
     "license": "MIT",
     "dependencies": {

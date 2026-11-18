@@ -55,7 +55,7 @@ enum SteamplayFollow {
  * Kitronik 16-servo board, micro motors, smooth moves and mirroring.
  */
 //% color="#CB6926" weight=100 icon="\uf085" block="STEAMplay Servos"
-//% groups=['Servos', 'Micro motors', 'Micro driving', 'Mirror', 'Wait and stop', 'Settings']
+//% groups=['Music sync', 'Servos', 'Micro motors', 'Micro driving', 'Mirror', 'Wait and stop', 'Settings']
 namespace steamplayServos {
     // ---------------------------------------------------------------
     // Kitronik's board code (I2C PCA9685 at address 0x6A, 50 Hz)
@@ -133,6 +133,10 @@ namespace steamplayServos {
     let follows: number[] = []      // the servo this one follows, or 0
     let followMode: number[] = []
     let isMicro: boolean[] = []
+    let isOn: boolean[] = []        // false = signal cut (floppy / stopped)
+    let syncPick: number[] = []     // music this channel is synced to, 0 = none
+    let savedKind: number[] = []    // 0 nothing saved, 1 angle, 2 micro motor speed, 3 off
+    let savedVal: number[] = []
     let setUp = false
 
     function setup() {
@@ -141,7 +145,15 @@ namespace steamplayServos {
         for (let i = 0; i < 16; i++) {
             angle.push(90); speed.push(0); limitLo.push(0); limitHi.push(180)
             trim.push(0); flip.push(1); follows.push(0); followMode.push(0); isMicro.push(false)
+            isOn.push(false); syncPick.push(0); savedKind.push(0); savedVal.push(0)
         }
+        steamplayCore.onMusicChange(function (started: boolean, m: number) {
+            for (let i = 0; i < 16; i++) {
+                if (syncPick[i] == 0 || !steamplayCore.musicMatches(syncPick[i], m)) continue
+                if (started) saveState(i)
+                else restoreState(i)
+            }
+        })
         steamplayMotion.setApplier(steamplayMotion.KIND_SERVO, applyAngle, applyOff)
         steamplayMotion.setApplier(steamplayMotion.KIND_MICRO, applySpeed, applyOff)
         steamplayCore.addStopHandler(function () { allOff() })
@@ -157,6 +169,7 @@ namespace steamplayServos {
         const i = ch(servo)
         const d = Math.max(limitLo[i], Math.min(limitHi[i], degrees))
         isMicro[i] = false
+        isOn[i] = true
         angle[i] = d
         writePwm(servo, d)
         for (let j = 0; j < 16; j++) {
@@ -165,6 +178,7 @@ namespace steamplayServos {
                 const k = Math.max(limitLo[j], Math.min(limitHi[j], fd))
                 angle[j] = k
                 isMicro[j] = false
+                isOn[j] = true
                 writePwm(j + 1, k)
             }
         }
@@ -178,12 +192,14 @@ namespace steamplayServos {
     function applySpeed(servo: number, s: number) {
         const i = ch(servo)
         isMicro[i] = true
+        isOn[i] = true
         speed[i] = s
         writePwm(servo, microAngle(i, s))
         for (let j = 0; j < 16; j++) {
             if (follows[j] == servo) {
                 const fs = followMode[j] == SteamplayFollow.Mirror ? -s : s
                 isMicro[j] = true
+                isOn[j] = true
                 speed[j] = fs
                 writePwm(j + 1, microAngle(j, fs))
             }
@@ -193,15 +209,74 @@ namespace steamplayServos {
     function applyOff(servo: number) {
         const i = ch(servo)
         speed[i] = 0
+        isOn[i] = false
         writeOff(servo)
-        for (let j = 0; j < 16; j++) if (follows[j] == servo) { speed[j] = 0; writeOff(j + 1) }
+        for (let j = 0; j < 16; j++) if (follows[j] == servo) { speed[j] = 0; isOn[j] = false; writeOff(j + 1) }
     }
 
     function allOff() {
         steamplayMotion.cancelAll()
         if (!initalised) return
         for (let s = 1; s <= 16; s++) writeOff(s)
-        for (let i = 0; i < speed.length; i++) speed[i] = 0
+        for (let i = 0; i < speed.length; i++) { speed[i] = 0; isOn[i] = false }
+    }
+
+    function saveState(i: number) {
+        if (!isOn[i]) savedKind[i] = 3
+        else if (isMicro[i]) { savedKind[i] = 2; savedVal[i] = speed[i] }
+        else { savedKind[i] = 1; savedVal[i] = angle[i] }
+    }
+
+    /** Put a synced channel back to how it was when its music started. */
+    function restoreState(i: number) {
+        const k = savedKind[i]
+        if (k == 0) return
+        savedKind[i] = 0
+        const servo = i + 1
+        steamplayMotion.cancel(steamplayMotion.KIND_SERVO, servo)
+        steamplayMotion.cancel(steamplayMotion.KIND_MICRO, servo)
+        steamplayMotion.cancel(steamplayMotion.KIND_WIGGLE, servo)
+        if (k == 3) applyOff(servo)
+        else if (k == 2) applySpeed(servo, savedVal[i])
+        else applyAngle(servo, savedVal[i])
+    }
+
+    // ---------------------------------------------------------------
+    // Blocks: music sync
+    // ---------------------------------------------------------------
+
+    /**
+     * When this music ends or is stopped, the servo or micro motor goes back to how it was when
+     * the music started. Move it to the music with "on music … note beat".
+     * @param servo the servo channel, eg: SteamplayServo.S1
+     * @param pick which music, eg: SteamplayMusicPick.AnySong
+     */
+    //% blockId=steamplay_servo_sync
+    //% block="sync servo $servo to $pick"
+    //% pick.defl=SteamplayMusicPick.AnySong
+    //% group="Music sync" weight=120 blockGap=8
+    export function syncServo(servo: SteamplayServo, pick: SteamplayMusicPick): void {
+        setup()
+        const i = ch(servo)
+        if (syncPick[i] == pick) return   // safe in forever
+        syncPick[i] = pick
+        savedKind[i] = 0
+        // The music may already be playing (eg sync right after "play song in background").
+        if (steamplayCore.musicMatches(pick, steamplayCore.musicNow())) saveState(i)
+    }
+
+    /**
+     * The servo or micro motor stops following the music. It stays as it is now.
+     * @param servo the servo channel, eg: SteamplayServo.S1
+     */
+    //% blockId=steamplay_servo_unsync
+    //% block="unsync servo $servo"
+    //% group="Music sync" weight=119
+    export function unsyncServo(servo: SteamplayServo): void {
+        setup()
+        const i = ch(servo)
+        syncPick[i] = 0
+        savedKind[i] = 0
     }
 
     /** A follower ignores its own commands until "stop mirroring". */
@@ -419,6 +494,30 @@ namespace steamplayServos {
     let dLeft = [-1, 1]           // SteamplayTurn for each when spinning left
 
     /**
+     * Micro drive setup: which micro motor is the left wheel and which is the right, and which
+     * way each turns to drive your car forward. Change until "micro drive forward" goes forward. Put in on start.
+     * @param left the left wheel, eg: SteamplayServo.S1
+     * @param dl its direction for forward, eg: SteamplayTurn.Forwards
+     * @param right the right wheel, eg: SteamplayServo.S2
+     * @param dr its direction for forward, eg: SteamplayTurn.Backwards
+     */
+    //% blockId=steamplay_micro_drive_setup
+    //% block="micro drive setup: left wheel $left $dl right wheel $right $dr"
+    //% left.defl=SteamplayServo.S1 right.defl=SteamplayServo.S2
+    //% inlineInputMode=inline
+    //% group="Micro driving" weight=59
+    export function setupMicroDrive(left: SteamplayServo, dl: SteamplayTurn, right: SteamplayServo, dr: SteamplayTurn): void {
+        if (left == right) return
+        driveCh[0] = left
+        driveCh[1] = right
+        dForward[0] = dl
+        dForward[1] = dr
+        // Spinning left = the left wheel goes backwards, the right wheel forwards.
+        dLeft[0] = -dl
+        dLeft[1] = dr
+    }
+
+    /**
      * Micro drive setup, part 1: which two micro motors drive your car, and which way
      * each turns to go forward. Change until "micro drive forward" goes forward. Put in on start.
      * @param a first micro motor, eg: SteamplayServo.S1
@@ -427,6 +526,7 @@ namespace steamplayServos {
      * @param m2 its direction, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_micro_drive_setup_forward
+    //% deprecated=true
     //% block="micro drive setup: forward is micro motor $a $m1 micro motor $b $m2"
     //% a.defl=SteamplayServo.S1 b.defl=SteamplayServo.S2
     //% inlineInputMode=inline
@@ -445,6 +545,7 @@ namespace steamplayServos {
      * @param m2 second micro motor, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_micro_drive_setup_left
+    //% deprecated=true
     //% block="micro drive setup: left is first micro motor $m1 second $m2"
     //% inlineInputMode=inline
     //% group="Micro driving" weight=57
@@ -473,7 +574,7 @@ namespace steamplayServos {
 
     /**
      * Drives your car with two micro motors. Radius: 0 spins on the spot, 50 pivots on one
-     * wheel, 100 makes a wide curve. Uses the micro drive setup blocks.
+     * wheel, 100 makes a wide curve. Uses the micro drive setup block.
      * @param dir where to drive, eg: SteamplayDrive.Forward
      * @param percent how fast, eg: 50
      * @param radius how wide the turn is, eg: 50

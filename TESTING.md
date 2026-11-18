@@ -1,13 +1,23 @@
-# STEAMplay - bench test sheet (v0.4.0)
+# STEAMplay - bench test sheet (v0.5.0)
 
 Load the extension's test project (`test.ts`) onto a micro:bit V2.
 The screen shows **S** (single), **D** (double), **L** (long). A+logo / B+logo show S or L with the centre dot.
 The top-row dot shows the input: left = A, middle = A+B, right = B, centre dot added = logo.
 Contacts: wire P1 to GND through a switch or swinging contact; the bottom row counts contacts.
 Pin stop: a push button between P2 and GND. Beat light: an LED and resistor from P8 to GND.
-Rows 1–27 are from v0.1.0; rows 28–50 from v0.2.0; rows 51–64 from v0.3.0.
+Rows 1–27 are from v0.1.0; rows 28–50 from v0.2.0; rows 51–64 from v0.3.0; rows with letters (eg 41b) are newer.
 
-**New in v0.4.0, test these first:**
+**New in v0.5.0, test these first:**
+- Drive setup is now one block: "drive setup: left wheel motor [1] … right wheel motor [2] …" (Motors) and
+  "micro drive setup: left wheel [S1] … right wheel [S2] …" (Servos). Old two-block setups still work but are hidden. Rows 57b, 63.
+- One music menu (any song / any sound / any music / each song or sound by name) in "on music [ ] note beat"
+  and "sync pin [P1] to [ ] [mode]" (+ "unsync pin"). Old "sync pin" and "on music note" blocks need the menu set. Rows 41b, 41c, 41f.
+- "sync servo [1] to [ ]" / "unsync servo" (top of Servos) and "sync motor [1] to [ ]" / "unsync motor" (top of Motors):
+  when the music ends they go back to how they were before it. Rows 41d, 41e.
+- New sounds: siren 1 (wail), siren 2 (hi-lo), siren 3 (yelp). Ear-check list rows 9–11 (songs now start at 12).
+- "on music note" no longer skips notes. "[beat] is even" / "is odd" blocks in Music → Light sync. Row 41c.
+
+**From v0.4.0 (test if not done yet):**
 - Secret code: tap logo, A, B, B quickly - the code runs (no A+logo, no lost A). Rows 30–31b.
 - A+logo / B+logo are now in the single and long press menus (no "pressed together" block). Rows 14–16, 15b.
   Old "pressed together" blocks in your v0.3.0 project show as broken: swap in "on A+logo single pressed".
@@ -108,6 +118,11 @@ Tick each row and note anything odd in the last column.
 | 39 | Touch P1 to GND | Goal sound | | |
 | 40 | Touch P1 again while the goal sound plays (after 1 s) | Sound starts again, not two sounds at once | | |
 | 41 | Is the P8 LED steady when filmed on a phone? | No flicker | | |
+| 41b | Play the horn sound (P8 light synced to "any song") | P8 stays off for the horn, follows songs | | |
+| 41c | "on music [Can-Can] note beat" swings servo 1 on even/odd beats; play Can-Can, then another song, then the horn | Servo dances to Can-Can only, on every note change (none skipped) | | |
+| 41d | "sync servo 1 to Can-Can" with servo at 90 and "sync motor 1 to any song" stopped; play Can-Can while they move | When the song ends both go back (servo to 90, motor stops) | | |
+| 41e | "unsync servo 1" then play Can-Can again | Servo stays wherever the last move left it | | |
+| 41f | "unsync pin P8" | Light turns off and stops following | | |
 
 ## Every sound and song (ear check)
 
@@ -117,9 +132,9 @@ Make a new project with the extension, open the JavaScript tab and paste this in
 let n = 0
 input.onButtonPressed(Button.A, function () {
     basic.showNumber(n)
-    if (n < 9) steamplayMusic.playSound(n, SteamplayPlayMode.InBackground)
-    else steamplayMusic.playSong(n - 9, SteamplayPlayMode.InBackground)
-    n = (n + 1) % 47
+    if (n < 12) steamplayMusic.playSound(n, SteamplayPlayMode.InBackground)
+    else steamplayMusic.playSong(n - 12, SteamplayPlayMode.InBackground)
+    n = (n + 1) % 50
 })
 ```
 
@@ -128,44 +143,47 @@ Mark each one: sounds right / wrong notes / too fast / too slow.
 | # | Sound | OK? | Notes |
 | --- | --- | --- | --- |
 | 0–8 | goal, mission complete, boot-up, horn, horn 1, countdown, uh-oh, yes, alarm | | |
-| 9 | Waltzing Matilda | | |
-| 10 | William Tell gallop (the "da-da-dum" part) | | |
-| 11 | Halloween: Hall of the Mountain King | | |
-| 12 | Can-Can | | |
-| 13 | Flight of the Bumblebee | | |
-| 14 | When the Saints Go Marching In | | |
-| 15 | Advance Australia Fair (check against the official PM&C sheet music) | | |
-| 16 | God Save the King | | |
-| 17 | The Star-Spangled Banner | | |
-| 18 | La Marseillaise (check the tune) | | |
-| 19 | O Canada | | |
-| 20 | Toccata and Fugue | | |
-| 21 | Funeral March of a Marionette (check the tune) | | |
-| 22 | Jingle Bells | | |
-| 23 | Deck the Halls | | |
-| 24 | We Wish You a Merry Christmas | | |
-| 25 | Silent Night | | |
-| 26 | Hot Cross Buns | | |
-| 27 | Sumer Is Icumen In (check the tune) | | |
-| 28 | Halloween: Chopin's Funeral March (check the tune) | | |
-| 29 | Halloween: Dies irae | | |
-| 30 | Beethoven's 5th | | |
-| 31 | Sea shanty: Drunken Sailor | | |
-| 32 | Sea shanty: The Wellerman (check the first chorus line) | | |
-| 33 | Sea shanty: Sailor's Hornpipe | | |
-| 34 | Sea shanty: Blow the Man Down | | |
-| 35 | Nursery: Hey Diddle Diddle (check the tune) | | |
-| 36 | Nursery: Little Bo Peep (check the tune) | | |
-| 37 | Nursery: Twinkle Twinkle Little Star | | |
-| 38 | Nursery: Mary Had a Little Lamb | | |
-| 39 | Nursery: Old MacDonald | | |
-| 40 | Nursery: London Bridge | | |
-| 41 | Nursery: Pop Goes the Weasel | | |
-| 42 | Nursery: Itsy Bitsy Spider | | |
-| 43 | Nursery: The Grand Old Duke of York (check the tune) | | |
-| 44 | Nursery: London's Burning | | |
-| 45 | Nursery: Hickory Dickory Dock | | |
-| 46 | Nursery: Humpty Dumpty | | |
+| 9 | siren 1 (wail: slow up and down) | | |
+| 10 | siren 2 (hi-lo: two tones) | | |
+| 11 | siren 3 (yelp: fast up and down) | | |
+| 12 | Waltzing Matilda | | |
+| 13 | William Tell gallop (the "da-da-dum" part) | | |
+| 14 | Halloween: Hall of the Mountain King | | |
+| 15 | Can-Can | | |
+| 16 | Flight of the Bumblebee | | |
+| 17 | When the Saints Go Marching In | | |
+| 18 | Advance Australia Fair (check against the official PM&C sheet music) | | |
+| 19 | God Save the King | | |
+| 20 | The Star-Spangled Banner | | |
+| 21 | La Marseillaise (check the tune) | | |
+| 22 | O Canada | | |
+| 23 | Toccata and Fugue | | |
+| 24 | Funeral March of a Marionette (check the tune) | | |
+| 25 | Jingle Bells | | |
+| 26 | Deck the Halls | | |
+| 27 | We Wish You a Merry Christmas | | |
+| 28 | Silent Night | | |
+| 29 | Hot Cross Buns | | |
+| 30 | Sumer Is Icumen In (check the tune) | | |
+| 31 | Halloween: Chopin's Funeral March (check the tune) | | |
+| 32 | Halloween: Dies irae | | |
+| 33 | Beethoven's 5th | | |
+| 34 | Sea shanty: Drunken Sailor | | |
+| 35 | Sea shanty: The Wellerman (check the first chorus line) | | |
+| 36 | Sea shanty: Sailor's Hornpipe | | |
+| 37 | Sea shanty: Blow the Man Down | | |
+| 38 | Nursery: Hey Diddle Diddle (check the tune) | | |
+| 39 | Nursery: Little Bo Peep (check the tune) | | |
+| 40 | Nursery: Twinkle Twinkle Little Star | | |
+| 41 | Nursery: Mary Had a Little Lamb | | |
+| 42 | Nursery: Old MacDonald | | |
+| 43 | Nursery: London Bridge | | |
+| 44 | Nursery: Pop Goes the Weasel | | |
+| 45 | Nursery: Itsy Bitsy Spider | | |
+| 46 | Nursery: The Grand Old Duke of York (check the tune) | | |
+| 47 | Nursery: London's Burning | | |
+| 48 | Nursery: Hickory Dickory Dock | | |
+| 49 | Nursery: Humpty Dumpty | | |
 
 ## Band (2–3 micro:bits)
 
@@ -204,7 +222,7 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 56 | "mirror servo 2 to servo 1", move servo 1 | Servo 2 moves the opposite way; servo 2's own blocks do nothing | | |
 | 56b | "mirror motor 2 to motor 1", set motor 1 speed 50 | Motor 2 runs at -50 | | |
 | 57 | Move 6 servos at once with "don't wait" | Smooth? (and 16 at once?) | | |
-| 57b | Car with micro motors on S1/S2: micro drive setup, then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
+| 57b | Car with micro motors on S1/S2: "micro drive setup: left wheel S1 … right wheel S2 …", then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
 | 57c | Look at the long blocks (ramp micro motor, move servo, wiggle, ramps on the motors tab) | Each block stays on one line, "s" at the end of the line | | |
 | 58 | Emergency stop while servos move | All servos go floppy, micro motors stop | | |
 
@@ -216,5 +234,5 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 60 | Same for motor 2 | Both directions work (V2) | | |
 | 61 | Play music while motor 2 runs | Motor 2 doesn't twitch | | |
 | 62 | "ramp motor 1 to 80 over 2 s" | Smooth speed-up | | |
-| 63 | Car: forward/left setup, then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
+| 63 | Car: "drive setup: left wheel motor 1 … right wheel motor 2 …", then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
 | 64 | "stop all motors and servos" | Everything stops, program keeps running | | |

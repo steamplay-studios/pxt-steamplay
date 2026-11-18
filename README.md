@@ -153,7 +153,7 @@ steamplayMusic.playSound(SteamplaySound.Goal, SteamplayPlayMode.InBackground)
 steamplayMusic.playSong(SteamplaySong.WaltzingMatilda, SteamplayPlayMode.UntilDone)
 ```
 
-Sounds: goal, mission complete, boot-up, horn, horn 1, countdown, uh-oh, yes, alarm.
+Sounds: goal, mission complete, boot-up, horn, horn 1, countdown, uh-oh, yes, alarm, siren 1 (wail), siren 2 (hi-lo), siren 3 (yelp).
 Songs include classics, anthems, sea shanties, nursery rhymes, and Halloween, Christmas, Easter and solstice tunes.
 
 ## Band
@@ -177,11 +177,29 @@ Lights on pins follow STEAMplay music: on the beat, on every note, high or low n
 bigger light through a transistor with its own power (share GND).
 
 ```blocks
-steamplayMusic.syncPin(SteamplayPin.P1, SteamplaySyncMode.Beat)
-steamplayMusic.syncPin(SteamplayPin.P2, SteamplaySyncMode.HighNotes)
+steamplayMusic.syncPin(SteamplayPin.P1, SteamplayMusicPick.AnySong, SteamplaySyncMode.Beat)
+steamplayMusic.syncPin(SteamplayPin.P2, SteamplayMusicPick.SongCanCan, SteamplaySyncMode.HighNotes)
 ```
 
-For your own light show, "on music note" gives each note's pitch and the beat number.
+Each light follows the music you choose: any song, any sound, any music, or one song or sound by name.
+"unsync pin" turns a light off and stops it following.
+
+For your own light show or a servo dance, "on music [song] note beat" gives each note's pitch (**note**, how
+high it sounds) and the **beat** (the steady count 1, 2, 3 … you'd clap along to). Pick any song, any sound or
+one by name. **Sync servo** (Servos tab) and **sync motor** (Motors tab) put the servo or motor back to how it
+was before the music once the music ends:
+
+```blocks
+steamplayServos.syncServo(SteamplayServo.S1, SteamplayMusicPick.SongCanCan)
+steamplayMusic.playSong(SteamplaySong.CanCan, SteamplayPlayMode.InBackground)
+steamplayMusic.onMusicNote(SteamplayMusicPick.SongCanCan, function (note, beat) {
+    if (beat % 2 == 0) {
+        steamplayServos.servoWrite(SteamplayServo.S1, 120)
+    } else {
+        steamplayServos.servoWrite(SteamplayServo.S1, 60)
+    }
+})
+```
 
 ## Servos (Kitronik 16-servo board)
 
@@ -204,11 +222,10 @@ steamplayServos.rampMicroMotorOff(SteamplayServo.S2, 1)
 ```
 
 A car with two micro motors drives the same way as the motor board car (see Driving a car), using the
-**micro drive** blocks in STEAMplay Servos. The setup also picks which two channels drive the wheels:
+**micro drive** blocks in STEAMplay Servos. The setup picks the left and right wheel channels:
 
 ```blocks
-steamplayServos.setupMicroForward(SteamplayServo.S1, SteamplayTurn.Forwards, SteamplayServo.S2, SteamplayTurn.Backwards)
-steamplayServos.setupMicroLeft(SteamplayTurn.Backwards, SteamplayTurn.Backwards)
+steamplayServos.setupMicroDrive(SteamplayServo.S1, SteamplayTurn.Forwards, SteamplayServo.S2, SteamplayTurn.Backwards)
 steamplayServos.rampMicroDrive(SteamplayDrive.Forward, 80, 50, 1)
 steamplayServos.microDrive(SteamplayDrive.Left, 50, 0)
 ```
@@ -229,21 +246,20 @@ steamplayMotors.rampMotorOff(SteamplayMotor.M1, 1)
 
 ## Driving a car
 
-Tell the micro:bit how your car is wired, then drive. Radius 0 spins on the spot, 50 pivots on one wheel,
+Tell the micro:bit which motor is the left wheel and which is the right, and which way each turns for forward, then drive. Radius 0 spins on the spot, 50 pivots on one wheel,
 100 makes a wide curve.
 
 ```blocks
-steamplayMotors.setupForward(SteamplayTurn.Forwards, SteamplayTurn.Forwards)
-steamplayMotors.setupLeft(SteamplayTurn.Backwards, SteamplayTurn.Forwards)
+steamplayMotors.setupDrive(SteamplayMotor.M1, SteamplayTurn.Forwards, SteamplayMotor.M2, SteamplayTurn.Forwards)
 steamplayMotors.rampDrive(SteamplayDrive.Forward, 80, 50, 1)
 steamplayMotors.drive(SteamplayDrive.Left, 50, 0)
 ```
 
 | Car does on "drive forward" | Fix |
 | --- | --- |
-| Goes backward | Flip both motors in the forward setup |
-| Spins in a circle | Flip the motor going the wrong way |
-| Turns the wrong way on "left" | Swap the left setup's directions |
+| Goes backward | Flip both directions in the drive setup |
+| Spins in a circle | Flip the direction of the wheel going the wrong way |
+| Turns the wrong way on "left" | Swap the left and right wheel motors in the setup |
 
 "stop all motors and servos" stops everything but keeps your program running. The emergency stop also turns
 off both boards.

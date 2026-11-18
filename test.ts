@@ -45,7 +45,7 @@ steamplayInputs.onPinContact(SteamplayPin.P1, 1, function () {
 })
 
 basic.showIcon(IconNames.Happy)
-steamplayMusic.syncPin(SteamplayPin.P8, SteamplaySyncMode.Beat)
+steamplayMusic.syncPin(SteamplayPin.P8, SteamplayMusicPick.AnySong, SteamplaySyncMode.Beat)
 steamplayMusic.playSound(SteamplaySound.BootUp, SteamplayPlayMode.InBackground)
 
 // Temperature: warm the micro:bit with your hand (or use the simulator slider).

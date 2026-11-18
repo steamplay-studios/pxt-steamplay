@@ -47,7 +47,7 @@ enum SteamplayDrive {
  * Kitronik motor board, ramps, mirroring and car driving.
  */
 //% color="#CB6926" weight=99 icon="\uf1b9" block="STEAMplay Motors"
-//% groups=['Motors', 'Driving', 'Mirror', 'Stepper', 'Wait and stop', 'Settings']
+//% groups=['Music sync', 'Motors', 'Driving', 'Mirror', 'Stepper', 'Wait and stop', 'Settings']
 namespace steamplayMotors {
     // ---------------------------------------------------------------
     // Kitronik's motor code
@@ -97,10 +97,25 @@ namespace steamplayMotors {
     let forwardDir = [1, 1]    // drive setup: which way each motor turns for "forward"
     let leftDir = [-1, 1]      // drive setup: which way each motor turns to spin left
     let setUp = false
+    let syncPick = [0, 0]      // music each motor is synced to, 0 = none
+    let saved = [false, false] // a speed was saved when the music started
+    let savedSpeed = [0, 0]
 
     function setup() {
         if (setUp) return
         setUp = true
+        steamplayCore.onMusicChange(function (started: boolean, m: number) {
+            for (let i = 0; i < 2; i++) {
+                if (syncPick[i] == 0 || !steamplayCore.musicMatches(syncPick[i], m)) continue
+                if (started) { saved[i] = true; savedSpeed[i] = speed[i] }
+                else if (saved[i]) {
+                    saved[i] = false
+                    steamplayMotion.cancel(steamplayMotion.KIND_MOTOR, i + 1)
+                    if (savedSpeed[i] == 0) applyOff(i + 1)
+                    else applySpeed(i + 1, savedSpeed[i])
+                }
+            }
+        })
         // Motor pins: sound on P0 is switched off so music can't twitch Motor 2.
         steamplayCore.claimPin(DigitalPin.P8, "motors")
         steamplayCore.claimPin(DigitalPin.P12, "motors")
@@ -145,6 +160,41 @@ namespace steamplayMotors {
 
     function isFollower(motor: number): boolean {
         return follows[motor - 1] != 0
+    }
+
+    // ---------------------------------------------------------------
+    // Blocks: music sync
+    // ---------------------------------------------------------------
+
+    /**
+     * When this music ends or is stopped, the motor goes back to the speed it had when the music
+     * started. Move it to the music with "on music … note beat".
+     * @param motor the motor, eg: SteamplayMotor.M1
+     * @param pick which music, eg: SteamplayMusicPick.AnySong
+     */
+    //% blockId=steamplay_motor_sync
+    //% block="sync motor $motor to $pick"
+    //% pick.defl=SteamplayMusicPick.AnySong
+    //% group="Music sync" weight=120 blockGap=8
+    export function syncMotor(motor: SteamplayMotor, pick: SteamplayMusicPick): void {
+        setup()
+        const i = motor - 1
+        if (syncPick[i] == pick) return   // safe in forever
+        syncPick[i] = pick
+        saved[i] = false
+        if (steamplayCore.musicMatches(pick, steamplayCore.musicNow())) { saved[i] = true; savedSpeed[i] = speed[i] }
+    }
+
+    /**
+     * The motor stops following the music. It keeps its speed now.
+     * @param motor the motor, eg: SteamplayMotor.M1
+     */
+    //% blockId=steamplay_motor_unsync
+    //% block="unsync motor $motor"
+    //% group="Music sync" weight=119
+    export function unsyncMotor(motor: SteamplayMotor): void {
+        syncPick[motor - 1] = 0
+        saved[motor - 1] = false
     }
 
     // ---------------------------------------------------------------
@@ -253,12 +303,35 @@ namespace steamplayMotors {
     // ---------------------------------------------------------------
 
     /**
+     * Drive setup: which motor is the left wheel and which is the right, and which way each
+     * turns to drive your car forward. Change until "drive forward" goes forward. Put in on start.
+     * @param left the left wheel's motor, eg: SteamplayMotor.M1
+     * @param dl its direction for forward, eg: SteamplayTurn.Forwards
+     * @param right the right wheel's motor, eg: SteamplayMotor.M2
+     * @param dr its direction for forward, eg: SteamplayTurn.Forwards
+     */
+    //% blockId=steamplay_drive_setup
+    //% block="drive setup: left wheel motor $left $dl right wheel motor $right $dr"
+    //% left.defl=SteamplayMotor.M1 right.defl=SteamplayMotor.M2
+    //% inlineInputMode=inline
+    //% group="Driving" weight=81
+    export function setupDrive(left: SteamplayMotor, dl: SteamplayTurn, right: SteamplayMotor, dr: SteamplayTurn): void {
+        if (left == right) return
+        forwardDir[left - 1] = dl
+        forwardDir[right - 1] = dr
+        // Spinning left = the left wheel goes backwards, the right wheel forwards.
+        leftDir[left - 1] = -dl
+        leftDir[right - 1] = dr
+    }
+
+    /**
      * Drive setup, part 1: which way each motor turns to drive your car forward.
      * Test your car and change these until "drive forward" goes forward. Put in on start.
      * @param m1 motor 1, eg: SteamplayTurn.Forwards
      * @param m2 motor 2, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_drive_setup_forward
+    //% deprecated=true
     //% block="drive setup: forward is motor 1 $m1 motor 2 $m2"
     //% group="Driving" weight=80
     export function setupForward(m1: SteamplayTurn, m2: SteamplayTurn): void {
@@ -273,6 +346,7 @@ namespace steamplayMotors {
      * @param m2 motor 2, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_drive_setup_left
+    //% deprecated=true
     //% block="drive setup: left is motor 1 $m1 motor 2 $m2"
     //% group="Driving" weight=79
     export function setupLeft(m1: SteamplayTurn, m2: SteamplayTurn): void {
@@ -301,7 +375,7 @@ namespace steamplayMotors {
 
     /**
      * Drives your car. Radius: 0 spins on the spot, 50 pivots on one wheel, 100 makes a wide curve.
-     * Uses the drive setup blocks.
+     * Uses the drive setup block.
      * @param dir where to drive, eg: SteamplayDrive.Forward
      * @param percent how fast, eg: 50
      * @param radius how wide the turn is, eg: 50
