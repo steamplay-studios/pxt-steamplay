@@ -1,6 +1,6 @@
 // STEAMplay Inputs - bench test project.
 // Shows a letter for each gesture so you can see exactly what was detected.
-//   S = single press   D = double press   L = long press   T = pressed together
+//   S = single press   D = double press   L = long press   (A+logo / B+logo show S or L)
 // The top row shows which input: left = A, middle = A+B, right = B, centre dot = logo.
 // A 3 s hold shows nothing (cancelled). Holding the logo 3 s is the emergency stop.
 // Touch P1 to GND: the bottom row counts contacts, and serial shows the contact time.
@@ -33,8 +33,9 @@ steamplayInputs.onLongPressed(SteamplayInput.AB, function () { show("L", 2) })
 
 steamplayInputs.onLongPressed(SteamplayInput.Logo, function () { show("L", 2); led.plot(2, 2) })
 
-steamplayInputs.onPressedTogether(SteamplayCombo.ALogo, function () { show("T", 0) })
-steamplayInputs.onPressedTogether(SteamplayCombo.BLogo, function () { show("T", 4) })
+steamplayInputs.onSinglePressed(SteamplayInput.ALogo, function () { show("S", 0); led.plot(2, 2) })
+steamplayInputs.onSinglePressed(SteamplayInput.BLogo, function () { show("S", 4); led.plot(2, 2) })
+steamplayInputs.onLongPressed(SteamplayInput.ALogo, function () { show("L", 0); led.plot(2, 2) })
 
 steamplayInputs.onPinContact(SteamplayPin.P1, 1, function () {
     contacts += 1

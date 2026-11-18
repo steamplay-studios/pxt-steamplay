@@ -1,11 +1,22 @@
-# STEAMplay - bench test sheet (v0.2.0)
+# STEAMplay - bench test sheet (v0.4.0)
 
 Load the extension's test project (`test.ts`) onto a micro:bit V2.
-The screen shows **S** (single), **D** (double), **L** (long) or **T** (together).
+The screen shows **S** (single), **D** (double), **L** (long). A+logo / B+logo show S or L with the centre dot.
 The top-row dot shows the input: left = A, middle = A+B, right = B, centre dot added = logo.
 Contacts: wire P1 to GND through a switch or swinging contact; the bottom row counts contacts.
 Pin stop: a push button between P2 and GND. Beat light: an LED and resistor from P8 to GND.
-Rows 1–27 are from v0.1.0; rows 28 onwards are new in v0.2.0.
+Rows 1–27 are from v0.1.0; rows 28–50 from v0.2.0; rows 51–64 from v0.3.0.
+
+**New in v0.4.0, test these first:**
+- Secret code: tap logo, A, B, B quickly - the code runs (no A+logo, no lost A). Rows 30–31b.
+- A+logo / B+logo are now in the single and long press menus (no "pressed together" block). Rows 14–16, 15b.
+  Old "pressed together" blocks in your v0.3.0 project show as broken: swap in "on A+logo single pressed".
+- Mirror: "mirror servo 2 to servo 1" = servo 2 follows servo 1 (swapped). Same for motors. Rows 56, 56b.
+- Micro driving (two micro motors as a car) in STEAMplay Servos. Row 57b.
+- Long "over ... s" blocks stay on one line. Row 57c.
+- Songs redone: Waltzing Matilda, William Tell, Advance Australia Fair, Blow the Man Down, Hey Diddle Diddle,
+  Wellerman; Chopin and Dies irae end at the long pause. Sounds: horn (higher), horn 1 (full ending). Ear-check list.
+- Still to check: Little Bo Peep (no source found yet), logo lag.
 
 Tick each row and note anything odd in the last column.
 
@@ -31,9 +42,10 @@ Tick each row and note anything odd in the last column.
 | --- | --- | --- | --- | --- |
 | 12 | Touch the logo once | Nothing (in this project the logo is the code key). In a new project with only "on logo single pressed": runs straight away | | |
 | 13 | Hold the logo about 1.5 s, let go | L with centre dot | | |
-| 14 | Hold A, touch logo, let go | T, top-left | | |
-| 15 | Hold B, touch logo, let go | T, top-right | | |
-| 16 | Press A normally while holding the micro:bit by its top edge | S for A, not T | | |
+| 14 | Hold A, touch logo, let go | S, top-left + centre dot | | |
+| 15 | Hold B, touch logo, let go | S, top-right + centre dot | | |
+| 15b | Hold A and the logo together for 1.5 s, let go | L, top-left + centre dot | | |
+| 16 | Press A normally while holding the micro:bit by its top edge | S for A, no centre dot | | |
 
 ## Emergency stop
 
@@ -189,8 +201,11 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 53 | "move servo 1 to 150 over 2 s" | Smooth move, about 2 s | | |
 | 54 | "wiggle servo 1 by 20 3 times, each 0.5 s" | Three wiggles, back to start | | |
 | 55 | "limit servo 1 to 20–160", then set it to 0 | Stops at 20 | | |
-| 56 | "mirror servo 1 to servo 2", move servo 1 | Servo 2 moves the opposite way | | |
+| 56 | "mirror servo 2 to servo 1", move servo 1 | Servo 2 moves the opposite way; servo 2's own blocks do nothing | | |
+| 56b | "mirror motor 2 to motor 1", set motor 1 speed 50 | Motor 2 runs at -50 | | |
 | 57 | Move 6 servos at once with "don't wait" | Smooth? (and 16 at once?) | | |
+| 57b | Car with micro motors on S1/S2: micro drive setup, then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
+| 57c | Look at the long blocks (ramp micro motor, move servo, wiggle, ramps on the motors tab) | Each block stays on one line, "s" at the end of the line | | |
 | 58 | Emergency stop while servos move | All servos go floppy, micro motors stop | | |
 
 ## Motor board

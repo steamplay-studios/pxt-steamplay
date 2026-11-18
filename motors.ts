@@ -202,6 +202,7 @@ namespace steamplayMotors {
      * @param dontWait let the code carry on during the ramp, eg: false
      */
     //% blockId=steamplay_motor_ramp
+    //% inlineInputMode=inline
     //% block="ramp motor $motor to speed $percent \\% over $seconds s||and don't wait $dontWait"
     //% percent.min=-100 percent.max=100 percent.defl=80 seconds.min=0 seconds.max=60 seconds.defl=1
     //% dontWait.shadow="toggleYesNo"
@@ -221,6 +222,7 @@ namespace steamplayMotors {
      * @param dontWait let the code carry on during the ramp, eg: false
      */
     //% blockId=steamplay_motor_ramp_off
+    //% inlineInputMode=inline
     //% block="ramp motor $motor off over $seconds s||and don't wait $dontWait"
     //% seconds.min=0 seconds.max=60 seconds.defl=1
     //% dontWait.shadow="toggleYesNo"
@@ -326,6 +328,7 @@ namespace steamplayMotors {
      * @param dontWait let the code carry on during the ramp, eg: false
      */
     //% blockId=steamplay_drive_ramp
+    //% inlineInputMode=inline
     //% block="ramp drive $dir to $percent \\% radius $radius over $seconds s||and don't wait $dontWait"
     //% percent.min=0 percent.max=100 percent.defl=80 radius.min=0 radius.max=100 radius.defl=50
     //% seconds.min=0 seconds.max=60 seconds.defl=1
@@ -349,14 +352,14 @@ namespace steamplayMotors {
     // ---------------------------------------------------------------
 
     /**
-     * Makes one motor follow the other. Copy: same speed. Mirror: opposite speed.
+     * The first motor follows the second. Copy: same speed. Mirror: opposite speed.
      * The follower ignores its own blocks until you stop mirroring.
      * @param mode mirror or copy, eg: SteamplayFollow.Mirror
      * @param leader the motor to follow, eg: SteamplayMotor.M1
      * @param follower the motor that follows, eg: SteamplayMotor.M2
      */
     //% blockId=steamplay_motor_mirror
-    //% block="$mode motor $leader to motor $follower"
+    //% block="$mode motor $follower to motor $leader"
     //% leader.defl=SteamplayMotor.M1 follower.defl=SteamplayMotor.M2
     //% group="Mirror" weight=60
     export function mirrorMotor(mode: SteamplayFollow, leader: SteamplayMotor, follower: SteamplayMotor): void {

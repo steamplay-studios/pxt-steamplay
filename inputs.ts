@@ -1,10 +1,10 @@
 /**
- * STEAMplay Inputs: smarter buttons, logo, pressed-together blocks,
+ * STEAMplay Inputs: smarter buttons, logo, button+logo presses,
  * emergency stop and fast pin contacts.
  * Copyright (c) 2026 STEAMplay Studios. MIT licence.
  */
 
-/** A button, both buttons, or the micro:bit logo. */
+/** A button, both buttons, the micro:bit logo, or a button with the logo. */
 enum SteamplayInput {
     //% block="A"
     A = 0,
@@ -13,11 +13,7 @@ enum SteamplayInput {
     //% block="A+B"
     AB = 2,
     //% block="logo"
-    Logo = 3
-}
-
-/** A button pressed together with the logo. */
-enum SteamplayCombo {
+    Logo = 3,
     //% block="A+logo"
     ALogo = 4,
     //% block="B+logo"
@@ -144,7 +140,7 @@ enum SteamplayPin {
  * Smarter buttons, fast pin contacts and an emergency stop.
  */
 //% color="#CB6926" weight=109 icon="\uf011" block="STEAMplay Inputs"
-//% groups=['Buttons', 'Pressed together', 'Contacts', 'Sensors', 'Sync', 'Safety']
+//% groups=['Buttons', 'Contacts', 'Sensors', 'Sync', 'Safety']
 namespace steamplayInputs {
     // ---------------------------------------------------------------
     // Timing rules (milliseconds)
@@ -158,7 +154,6 @@ namespace steamplayInputs {
     const KIND_SINGLE = 1
     const KIND_DOUBLE = 2
     const KIND_LONG = 3
-    const KIND_TOGETHER = 4
 
     // Input ids (match the enum values above)
     const IN_NONE = -1
@@ -230,7 +225,8 @@ namespace steamplayInputs {
                 return
             }
             if (isCombo(inp)) {
-                fire(KIND_TOGETHER, inp)
+                // A+logo / B+logo: single or long press only (no double press).
+                fire(held >= LONG_MS ? KIND_LONG : KIND_SINGLE, inp)
                 this.state = ST_IDLE
             } else if (held >= LONG_MS) {
                 fire(KIND_LONG, inp)
@@ -488,8 +484,11 @@ namespace steamplayInputs {
     let logoHeld = false
     let logoOffAt = -1
 
+    let logoRaw = false
+
     function readLogo(now: number): boolean {
-        if (input.logoIsPressed()) {
+        logoRaw = input.logoIsPressed()
+        if (logoRaw) {
             logoHeld = true
             logoOffAt = -1
         } else if (logoHeld) {
@@ -504,19 +503,31 @@ namespace steamplayInputs {
         const a = input.buttonIsPressed(Button.A)
         const b = input.buttonIsPressed(Button.B)
         // The logo only exists on V2, and reading it on V1 would show error 927.
-        const l = needLogo && steamplayCore.isV2() ? readLogo(now) : false
+        let l = needLogo && steamplayCore.isV2() ? readLogo(now) : false
+        // A or B pressed while the finger has just left the logo: the logo tap is over now,
+        // so the button starts its own tap instead of being swallowed into the logo tap.
+        let logoEnded = false
+        if (l && !logoRaw && (a || b)) {
+            logoHeld = false
+            l = false
+            logoEnded = true
+        }
 
         checkEmergencyStop(a, b, l, now)
         checkTemperature(now)
         checkCodeTimeout(now)
 
+        // "Pressed together" needs the finger really on the logo right now (not the
+        // 60 ms release allowance), so a quick "logo, then A" is two taps, not A+logo.
+        const together = logoCombos && l && logoRaw
         let cur = IN_NONE
         if (a && b) cur = IN_AB
-        else if (logoCombos && a && l) cur = IN_ALOGO
-        else if (logoCombos && b && l) cur = IN_BLOGO
+        else if (together && a) cur = IN_ALOGO
+        else if (together && b) cur = IN_BLOGO
         else if (a) cur = IN_A
         else if (b) cur = IN_B
         else if (logoCombos && l) cur = IN_LOGO
+        if (logoEnded && logoCombos) buttonTracker.tick(IN_NONE, now)
         buttonTracker.tick(cur, now)
 
         if (!logoCombos) logoTracker.tick(l ? IN_LOGO : IN_NONE, now)
@@ -599,21 +610,6 @@ namespace steamplayInputs {
         for (let i = 0; i < ps.length; i++) slotFor(ps[i])
         control.onEvent(steamplayCore.EVENT_SRC_SEQUENCE, seqCodes.length, handler)
         start()
-    }
-
-    // ---------------------------------------------------------------
-    // Pressed together
-    // ---------------------------------------------------------------
-
-    /**
-     * Runs when you hold A or B and touch the logo at the same time.
-     * @param combo the button and logo pair, eg: SteamplayCombo.ALogo
-     */
-    //% blockId=steamplay_on_pressed_together
-    //% block="on $combo pressed together"
-    //% group="Pressed together" weight=70
-    export function onPressedTogether(combo: SteamplayCombo, handler: () => void) {
-        register(KIND_TOGETHER, combo, handler)
     }
 
     // ---------------------------------------------------------------

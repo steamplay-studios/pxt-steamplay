@@ -55,7 +55,7 @@ enum SteamplayFollow {
  * Kitronik 16-servo board, micro motors, smooth moves and mirroring.
  */
 //% color="#CB6926" weight=100 icon="\uf085" block="STEAMplay Servos"
-//% groups=['Servos', 'Micro motors', 'Mirror', 'Wait and stop', 'Settings']
+//% groups=['Servos', 'Micro motors', 'Micro driving', 'Mirror', 'Wait and stop', 'Settings']
 namespace steamplayServos {
     // ---------------------------------------------------------------
     // Kitronik's board code (I2C PCA9685 at address 0x6A, 50 Hz)
@@ -250,6 +250,7 @@ namespace steamplayServos {
      * @param dontWait let the code carry on while it moves, eg: false
      */
     //% blockId=steamplay_servo_move
+    //% inlineInputMode=inline
     //% block="move servo $servo to $degrees ° over $seconds s||and don't wait $dontWait"
     //% degrees.min=0 degrees.max=180 degrees.defl=90 seconds.min=0 seconds.max=60 seconds.defl=2
     //% dontWait.shadow="toggleYesNo"
@@ -273,6 +274,7 @@ namespace steamplayServos {
      * @param dontWait let the code carry on while it wiggles, eg: false
      */
     //% blockId=steamplay_servo_wiggle
+    //% inlineInputMode=inline
     //% block="wiggle servo $servo by $degrees ° $times times, each wiggle $seconds s||and don't wait $dontWait"
     //% degrees.min=0 degrees.max=90 degrees.defl=20 times.min=1 times.max=50 times.defl=3
     //% seconds.min=0.1 seconds.max=10 seconds.defl=0.5
@@ -345,6 +347,7 @@ namespace steamplayServos {
      * @param dontWait let the code carry on during the ramp, eg: false
      */
     //% blockId=steamplay_micro_ramp
+    //% inlineInputMode=inline
     //% block="ramp micro motor $servo to speed $percent \\% over $seconds s||and don't wait $dontWait"
     //% percent.min=-100 percent.max=100 percent.defl=80 seconds.min=0 seconds.max=60 seconds.defl=1
     //% dontWait.shadow="toggleYesNo"
@@ -364,6 +367,7 @@ namespace steamplayServos {
      * @param dontWait let the code carry on during the ramp, eg: false
      */
     //% blockId=steamplay_micro_ramp_off
+    //% inlineInputMode=inline
     //% block="ramp micro motor $servo off over $seconds s||and don't wait $dontWait"
     //% seconds.min=0 seconds.max=60 seconds.defl=1
     //% dontWait.shadow="toggleYesNo"
@@ -408,18 +412,126 @@ namespace steamplayServos {
     }
 
     // ---------------------------------------------------------------
+    // Blocks: driving a car with two micro motors
+    // ---------------------------------------------------------------
+    let driveCh = [1, 2]          // the two micro motors used for driving
+    let dForward = [1, 1]         // SteamplayTurn for each when driving forward
+    let dLeft = [-1, 1]           // SteamplayTurn for each when spinning left
+
+    /**
+     * Micro drive setup, part 1: which two micro motors drive your car, and which way
+     * each turns to go forward. Change until "micro drive forward" goes forward. Put in on start.
+     * @param a first micro motor, eg: SteamplayServo.S1
+     * @param m1 its direction, eg: SteamplayTurn.Forwards
+     * @param b second micro motor, eg: SteamplayServo.S2
+     * @param m2 its direction, eg: SteamplayTurn.Forwards
+     */
+    //% blockId=steamplay_micro_drive_setup_forward
+    //% block="micro drive setup: forward is micro motor $a $m1 micro motor $b $m2"
+    //% a.defl=SteamplayServo.S1 b.defl=SteamplayServo.S2
+    //% inlineInputMode=inline
+    //% group="Micro driving" weight=58
+    export function setupMicroForward(a: SteamplayServo, m1: SteamplayTurn, b: SteamplayServo, m2: SteamplayTurn): void {
+        driveCh[0] = a
+        driveCh[1] = b
+        dForward[0] = m1
+        dForward[1] = m2
+    }
+
+    /**
+     * Micro drive setup, part 2: which way each micro motor turns to spin your car left.
+     * Change until "micro drive left" turns left. Put in on start.
+     * @param m1 first micro motor, eg: SteamplayTurn.Backwards
+     * @param m2 second micro motor, eg: SteamplayTurn.Forwards
+     */
+    //% blockId=steamplay_micro_drive_setup_left
+    //% block="micro drive setup: left is first micro motor $m1 second $m2"
+    //% inlineInputMode=inline
+    //% group="Micro driving" weight=57
+    export function setupMicroLeft(m1: SteamplayTurn, m2: SteamplayTurn): void {
+        dLeft[0] = m1
+        dLeft[1] = m2
+    }
+
+    function microDriveSpeeds(dir: SteamplayDrive, percent: number, radius: number): number[] {
+        const p = Math.max(0, Math.min(100, Math.abs(percent)))
+        if (dir == SteamplayDrive.Forward) return [p * dForward[0], p * dForward[1]]
+        if (dir == SteamplayDrive.Backward) return [-p * dForward[0], -p * dForward[1]]
+        // Turning: the inner motor is the one that goes the other way when spinning left.
+        let innerLeft = 0
+        if (dLeft[0] == dForward[0] && dLeft[1] != dForward[1]) innerLeft = 1
+        const inner = dir == SteamplayDrive.Left ? innerLeft : 1 - innerLeft
+        const outer = 1 - inner
+        // radius 0 = spin on the spot, 50 = pivot on the inner wheel, 100 = wide curve
+        const r = Math.max(0, Math.min(100, radius))
+        const innerFactor = r <= 50 ? (r - 50) / 50 : 0.8 * (r - 50) / 50
+        const out = [0, 0]
+        out[outer] = p * dForward[outer]
+        out[inner] = p * innerFactor * dForward[inner]
+        return out
+    }
+
+    /**
+     * Drives your car with two micro motors. Radius: 0 spins on the spot, 50 pivots on one
+     * wheel, 100 makes a wide curve. Uses the micro drive setup blocks.
+     * @param dir where to drive, eg: SteamplayDrive.Forward
+     * @param percent how fast, eg: 50
+     * @param radius how wide the turn is, eg: 50
+     */
+    //% blockId=steamplay_micro_drive
+    //% block="micro drive $dir $percent \\% radius $radius"
+    //% percent.min=0 percent.max=100 percent.defl=50 radius.min=0 radius.max=100 radius.defl=50
+    //% inlineInputMode=inline
+    //% group="Micro driving" weight=56
+    export function microDrive(dir: SteamplayDrive, percent: number, radius: number): void {
+        setup()
+        const sp = microDriveSpeeds(dir, percent, radius)
+        for (let k = 0; k < 2; k++) {
+            steamplayMotion.cancel(steamplayMotion.KIND_MICRO, driveCh[k])
+            if (!isFollower(driveCh[k])) applySpeed(driveCh[k], sp[k])
+        }
+    }
+
+    /**
+     * Ramps your car smoothly into a micro drive over this many seconds.
+     * @param dir where to drive, eg: SteamplayDrive.Forward
+     * @param percent how fast, eg: 80
+     * @param radius how wide the turn is, eg: 50
+     * @param seconds how long the ramp takes, eg: 1
+     * @param dontWait let the code carry on during the ramp, eg: false
+     */
+    //% blockId=steamplay_micro_drive_ramp
+    //% block="ramp micro drive $dir to $percent \\% radius $radius over $seconds s||and don't wait $dontWait"
+    //% percent.min=0 percent.max=100 percent.defl=80 radius.min=0 radius.max=100 radius.defl=50
+    //% seconds.min=0 seconds.max=60 seconds.defl=1
+    //% dontWait.shadow="toggleYesNo"
+    //% expandableArgumentMode="toggle"
+    //% inlineInputMode=inline
+    //% group="Micro driving" weight=55
+    export function rampMicroDrive(dir: SteamplayDrive, percent: number, radius: number, seconds: number, dontWait?: boolean): void {
+        setup()
+        const sp = microDriveSpeeds(dir, percent, radius)
+        const ids: number[] = []
+        for (let k = 0; k < 2; k++) {
+            const c = driveCh[k]
+            if (!isFollower(c)) ids.push(steamplayMotion.start(steamplayMotion.KIND_MICRO, c, speed[ch(c)], sp[k], seconds, 0, 0, false))
+        }
+        if (!dontWait) for (const id of ids) steamplayMotion.waitFor(id)
+    }
+
+    // ---------------------------------------------------------------
     // Blocks: mirroring
     // ---------------------------------------------------------------
 
     /**
-     * Makes servo B follow servo A. Copy: same angle or speed. Mirror: the opposite
-     * (30° becomes 150°, speed 50 becomes -50). B ignores its own blocks until you stop mirroring.
+     * The first servo follows the second. Copy: same angle or speed. Mirror: the opposite
+     * (30° becomes 150°, speed 50 becomes -50). The follower ignores its own blocks until you stop mirroring.
      * @param mode mirror or copy, eg: SteamplayFollow.Mirror
      * @param leader the servo to follow, eg: SteamplayServo.S1
      * @param follower the servo that follows, eg: SteamplayServo.S2
      */
     //% blockId=steamplay_servo_mirror
-    //% block="$mode servo $leader to servo $follower"
+    //% block="$mode servo $follower to servo $leader"
     //% leader.defl=SteamplayServo.S1 follower.defl=SteamplayServo.S2
     //% group="Mirror" weight=50
     export function mirrorServo(mode: SteamplayFollow, leader: SteamplayServo, follower: SteamplayServo): void {

@@ -1,8 +1,9 @@
 # pxt-steamplay
 
 Blocks from **STEAMplay Studios** for the BBC micro:bit, made for kids who build with cardboard and code.
-This first version adds **STEAMplay Inputs**: smarter buttons, buttons pressed together with the logo,
-an emergency stop and fast pin contacts and temperature change. Servos, motors, music and light shows are coming next.
+Four tabs: **STEAMplay Inputs** (smarter buttons, secret codes, emergency stops, fast pin contacts,
+temperature change, sync checkpoints), **STEAMplay Music** (sounds, songs, band, light sync),
+**STEAMplay Servos** and **STEAMplay Motors** (Kitronik 16-servo board and motor driver board).
 
 Works best on **micro:bit V2**. Button blocks also work on V1. Logo blocks need V2 (the gold logo).
 
@@ -59,12 +60,13 @@ steamplayInputs.onSequence(SteamplayFirstTap.Logo, SteamplayTap.A, SteamplayTap.
 })
 ```
 
-## Pressed together
+## Button with the logo
 
-Run code when a button and the gold logo are pressed together (micro:bit V2).
+Choose **A+logo** or **B+logo** in the single press or long press block to run code when a button
+and the gold logo are pressed together (micro:bit V2). There's no double press for these.
 
 ```blocks
-steamplayInputs.onPressedTogether(SteamplayCombo.ALogo, function () {
+steamplayInputs.onSinglePressed(SteamplayInput.ALogo, function () {
     basic.showIcon(IconNames.Yes)
 })
 ```
@@ -201,7 +203,17 @@ steamplayServos.setMicroMotor(SteamplayServo.S2, 50)
 steamplayServos.rampMicroMotorOff(SteamplayServo.S2, 1)
 ```
 
-**Mirror** makes one servo do the opposite of another (30° becomes 150°, speed 50 becomes −50), **copy** makes it
+A car with two micro motors drives the same way as the motor board car (see Driving a car), using the
+**micro drive** blocks in STEAMplay Servos. The setup also picks which two channels drive the wheels:
+
+```blocks
+steamplayServos.setupMicroForward(SteamplayServo.S1, SteamplayTurn.Forwards, SteamplayServo.S2, SteamplayTurn.Backwards)
+steamplayServos.setupMicroLeft(SteamplayTurn.Backwards, SteamplayTurn.Backwards)
+steamplayServos.rampMicroDrive(SteamplayDrive.Forward, 80, 50, 1)
+steamplayServos.microDrive(SteamplayDrive.Left, 50, 0)
+```
+
+**Mirror** makes one servo do the opposite of another: "mirror servo 2 to servo 1" makes servo 2 follow servo 1 (30° becomes 150°, speed 50 becomes −50), **copy** makes it
 do the same. Ramps, moves and wiggles wait until they finish, unless you open the block's "+" and choose
 "don't wait".
 
