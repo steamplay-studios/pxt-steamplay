@@ -1,4 +1,4 @@
-# STEAMplay - bench test sheet (v0.6.0)
+# STEAMplay - bench test sheet (v0.7.0)
 
 Load the extension's test project (`test.ts`) onto a micro:bit V2.
 The screen shows **S** (single), **D** (double), **L** (long). A+logo / B+logo show S or L with the centre dot.
@@ -7,7 +7,14 @@ Contacts: wire P1 to GND through a switch or swinging contact; the bottom row co
 Pin stop: a push button between P2 and GND. Beat light: an LED and resistor from P8 to GND.
 Rows 1–27 are from v0.1.0; rows 28–50 from v0.2.0; rows 51–64 from v0.3.0; rows with letters (eg 41b) are newer.
 
-**New in v0.6.0, test these first:**
+**New in v0.7.0, test these first:**
+- A light synced inside "on music" (eg if note = 1, sync pin P1 … every note) now lights for that note, not from
+  the next one. Rows 41k, 41l.
+- Drive setup and micro drive setup: directions are now "clockwise (+)" / "anticlockwise (-)" and the block says
+  "spins". Same values, so placed blocks keep their settings. Rows 57b, 63.
+- Sync pin hover note explains on start, "on music", and that + split is only for high/low notes.
+
+**From v0.6.0 (test if not done yet):**
 - "on music [song] note" now has one value: **note** = the note number 1, 2, 3 … (pitch and beat are gone: swap
   beat for note in old projects). Servos, motors and sync pin lights changed inside it go back by themselves when
   the song ends. New "on music [song] finished" block for your own end settings. Rows 41c, 41g, 41h, 41k.
@@ -239,7 +246,7 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 56 | "mirror servo 2 to servo 1", move servo 1 | Servo 2 moves the opposite way; servo 2's own blocks do nothing | | |
 | 56b | "mirror motor 2 to motor 1", set motor 1 speed 50 | Motor 2 runs at -50 | | |
 | 57 | Move 6 servos at once with "and wait: no" | Smooth? (and 16 at once?) | | |
-| 57b | Car with micro motors on S1/S2: "micro drive setup: to go forward, left wheel S1 turns … and right wheel S2 turns …", then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
+| 57b | Car with micro motors on S1/S2: "micro drive setup: to go forward, left wheel S1 spins … and right wheel S2 spins …", then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
 | 57d | Open the "+" on a ramp block | Shows "and wait [yes]"; yes waits, no carries on straight away | | |
 | 57c | Look at the long blocks (ramp micro motor, move servo, wiggle, ramps on the motors tab) | Each block stays on one line, "s" at the end of the line | | |
 | 58 | Emergency stop while servos move | All servos go floppy, micro motors stop | | |
@@ -252,5 +259,5 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 60 | Same for motor 2 | Both directions work (V2) | | |
 | 61 | Play music while motor 2 runs | Motor 2 doesn't twitch | | |
 | 62 | "ramp motor 1 to 80 over 2 s" | Smooth speed-up | | |
-| 63 | Car: "drive setup: to go forward, left wheel motor 1 turns … and right wheel motor 2 turns …", then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
+| 63 | Car: "drive setup: to go forward, left wheel motor 1 spins … and right wheel motor 2 spins …", then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
 | 64 | "stop all motors and servos" | Everything stops, program keeps running | | |

@@ -547,18 +547,29 @@ namespace steamplayMusic {
     }
 
     function lightsAllOff() {
+        nowF = 0
         for (let i = 0; i < lightPins.length; i++) {
             if (lightModes[i] != SteamplaySyncMode.Microphone) setLight(i, 0)
         }
     }
 
     /** A note starts: lights in note modes turn on for this note (and off at the end of it). */
+    // The note sounding now, so a light switched on mid-note (eg from "on music") lights for it straight away.
+    let nowF = 0
+    let nowBig = false
+    let nowNoteNo = 0
+
     function lightsNoteOn(f: number, big: boolean, noteNo: number) {
+        nowF = f; nowBig = big; nowNoteNo = noteNo
+        for (let i = 0; i < lightPins.length; i++) noteLight(i, f, big, noteNo)
+    }
+
+    function noteLight(i: number, f: number, big: boolean, noteNo: number) {
         const autoMid = (tLow + tHigh) / 2
-        for (let i = 0; i < lightPins.length; i++) {
+        {
             const m = lightModes[i]
             const mid = lightSplit[i] > 0 ? lightSplit[i] : autoMid
-            if (!follows(lightPick[i])) continue
+            if (!follows(lightPick[i])) return
             if (m == SteamplaySyncMode.EveryNote) setLight(i, f > 0 ? 1023 : 0)
             else if (m == SteamplaySyncMode.HighNotes) setLight(i, f > 0 && f >= mid ? 1023 : 0)
             else if (m == SteamplaySyncMode.LowNotes) setLight(i, f > 0 && (lightSplit[i] > 0 ? f <= mid : f < mid) ? 1023 : 0)
@@ -577,6 +588,7 @@ namespace steamplayMusic {
     }
 
     function lightsNoteOff() {
+        nowF = 0
         for (let i = 0; i < lightPins.length; i++) {
             const m = lightModes[i]
             if (m == SteamplaySyncMode.EveryNote || m == SteamplaySyncMode.HighNotes || m == SteamplaySyncMode.LowNotes
@@ -853,8 +865,8 @@ namespace steamplayMusic {
     // ---------------------------------------------------------------
 
     /**
-     * A light on this pin follows the music. Note modes light it while each note plays and turn it off at the
-     * end of the note. Wire an LED and resistor from the pin to GND. Put in on start.
+     * A light on this pin follows the music, from now on. Usually goes in on start. Inside "on music" it changes
+     * the light for that song only. + split: only for high and low notes. Wire an LED and resistor from the pin to GND.
      * @param pin the pin for the light, eg: SteamplayPin.P1
      * @param pick which music the light follows, eg: SteamplayMusicPick.AnySong
      * @param mode how the light follows the music, eg: SteamplaySyncMode.Beat
@@ -895,6 +907,7 @@ namespace steamplayMusic {
             setLight(i, 0)
         }
         if (mode == SteamplaySyncMode.On && follows(pick)) setLight(i, 1023)
+        else if (playing && nowF > 0) noteLight(i, nowF, nowBig, nowNoteNo)
         if (mode == SteamplaySyncMode.Microphone && steamplayCore.isV2()) startMicrophone()
     }
 

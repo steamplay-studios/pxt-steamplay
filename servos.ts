@@ -479,15 +479,16 @@ namespace steamplayServos {
     let dLeft = [-1, 1]           // SteamplayTurn for each when spinning left
 
     /**
-     * Put in on start. Which channel is each wheel, and which way it turns to make the car go forward.
-     * Car goes backward? Flip both. Turns the wrong way? Swap the two channels.
+     * Put in on start. Which channel is each wheel, and which way it spins (+ or -) to make the car go forward.
+     * Wheels on opposite sides usually need one + and one -. Goes backward? Flip both. Spins in a circle? Flip one.
+     * Don't also mirror these two micro motors.
      * @param left the left wheel, eg: SteamplayServo.S1
      * @param dl its direction for forward, eg: SteamplayTurn.Forwards
      * @param right the right wheel, eg: SteamplayServo.S2
      * @param dr its direction for forward, eg: SteamplayTurn.Backwards
      */
     //% blockId=steamplay_micro_drive_setup
-    //% block="micro drive setup: to go forward, left wheel $left turns $dl and right wheel $right turns $dr"
+    //% block="micro drive setup: to go forward, left wheel $left spins $dl and right wheel $right spins $dr"
     //% left.defl=SteamplayServo.S1 right.defl=SteamplayServo.S2
     //% inlineInputMode=inline
     //% group="Micro driving" weight=59

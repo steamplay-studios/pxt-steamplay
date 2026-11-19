@@ -23,11 +23,11 @@ enum SteamplayMotorDirection {
     Reverse = 1
 }
 
-/** Which way a motor turns in the drive setup. */
+/** Which way a motor spins in the drive setup: + speed or - speed. */
 enum SteamplayTurn {
-    //% block="forwards"
+    //% block="clockwise (+)"
     Forwards = 1,
-    //% block="backwards"
+    //% block="anticlockwise (-)"
     Backwards = -1
 }
 
@@ -275,15 +275,15 @@ namespace steamplayMotors {
     // ---------------------------------------------------------------
 
     /**
-     * Put in on start. Which motor is each wheel, and which way it turns to make the car go forward.
-     * Car goes backward? Flip both. Turns the wrong way? Swap the two motors.
+     * Put in on start. Which motor is each wheel, and which way it spins (+ or -) to make the car go forward.
+     * Wheels on opposite sides usually need one + and one -. Goes backward? Flip both. Spins in a circle? Flip one.
      * @param left the left wheel's motor, eg: SteamplayMotor.M1
      * @param dl its direction for forward, eg: SteamplayTurn.Forwards
      * @param right the right wheel's motor, eg: SteamplayMotor.M2
      * @param dr its direction for forward, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_drive_setup
-    //% block="drive setup: to go forward, left wheel motor $left turns $dl and right wheel motor $right turns $dr"
+    //% block="drive setup: to go forward, left wheel motor $left spins $dl and right wheel motor $right spins $dr"
     //% left.defl=SteamplayMotor.M1 right.defl=SteamplayMotor.M2
     //% inlineInputMode=inline
     //% group="Driving" weight=81

@@ -277,8 +277,8 @@ steamplayMotors.drive(SteamplayDrive.Left, 50, 0)
 
 | Car does on "drive forward" | Fix |
 | --- | --- |
-| Goes backward | Flip both directions in the drive setup |
-| Spins in a circle | Flip the direction of the wheel going the wrong way |
+| Goes backward | Flip both directions (+ and -) in the drive setup |
+| Spins in a circle | Flip one wheel (wheels on opposite sides usually need one + and one -). Also check you are not mirroring the two drive motors |
 | Turns the wrong way on "left" | Swap the left and right wheel motors in the setup |
 
 "stop all motors and servos" stops everything but keeps your program running. The emergency stop also turns
