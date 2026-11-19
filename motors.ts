@@ -47,7 +47,7 @@ enum SteamplayDrive {
  * Kitronik motor board, ramps, mirroring and car driving.
  */
 //% color="#CB6926" weight=99 icon="\uf1b9" block="STEAMplay Motors"
-//% groups=['Music sync', 'Motors', 'Driving', 'Mirror', 'Stepper', 'Wait and stop', 'Settings']
+//% groups=['Motors', 'Driving', 'Mirror', 'Stepper', 'Wait and stop', 'Settings']
 namespace steamplayMotors {
     // ---------------------------------------------------------------
     // Kitronik's motor code
@@ -97,23 +97,26 @@ namespace steamplayMotors {
     let forwardDir = [1, 1]    // drive setup: which way each motor turns for "forward"
     let leftDir = [-1, 1]      // drive setup: which way each motor turns to spin left
     let setUp = false
-    let syncPick = [0, 0]      // music each motor is synced to, 0 = none
-    let saved = [false, false] // a speed was saved when the music started
-    let savedSpeed = [0, 0]
+    let auto = [false, false]  // moved by an "on music" block: put back when the music ends
+    let autoSpeed = [0, 0]
+
+    function musicGuard(i: number): boolean {
+        if (!steamplayCore.inMusicMove()) return true
+        if (steamplayCore.musicNow() == 0) return false
+        if (!auto[i]) { auto[i] = true; autoSpeed[i] = speed[i] }
+        return true
+    }
 
     function setup() {
         if (setUp) return
         setUp = true
         steamplayCore.onMusicChange(function (started: boolean, m: number) {
-            for (let i = 0; i < 2; i++) {
-                if (syncPick[i] == 0 || !steamplayCore.musicMatches(syncPick[i], m)) continue
-                if (started) { saved[i] = true; savedSpeed[i] = speed[i] }
-                else if (saved[i]) {
-                    saved[i] = false
-                    steamplayMotion.cancel(steamplayMotion.KIND_MOTOR, i + 1)
-                    if (savedSpeed[i] == 0) applyOff(i + 1)
-                    else applySpeed(i + 1, savedSpeed[i])
-                }
+            if (!started) for (let i = 0; i < 2; i++) {
+                if (!auto[i]) continue
+                auto[i] = false
+                steamplayMotion.cancel(steamplayMotion.KIND_MOTOR, i + 1)
+                if (autoSpeed[i] == 0) applyOff(i + 1)
+                else applySpeed(i + 1, autoSpeed[i])
             }
         })
         // Motor pins: sound on P0 is switched off so music can't twitch Motor 2.
@@ -134,6 +137,7 @@ namespace steamplayMotors {
     }
 
     function applySpeed(motor: number, s: number) {
+        if (!musicGuard(motor - 1)) return
         speed[motor - 1] = s
         writeSpeed(motor, s)
         const other = motor == 1 ? 2 : 1
@@ -145,6 +149,7 @@ namespace steamplayMotors {
     }
 
     function applyOff(motor: number) {
+        if (!musicGuard(motor - 1)) return
         speed[motor - 1] = 0
         kOff(motor)
         const other = motor == 1 ? 2 : 1
@@ -160,41 +165,6 @@ namespace steamplayMotors {
 
     function isFollower(motor: number): boolean {
         return follows[motor - 1] != 0
-    }
-
-    // ---------------------------------------------------------------
-    // Blocks: music sync
-    // ---------------------------------------------------------------
-
-    /**
-     * When this music ends or is stopped, the motor goes back to the speed it had when the music
-     * started. Move it to the music with "on music … note beat".
-     * @param motor the motor, eg: SteamplayMotor.M1
-     * @param pick which music, eg: SteamplayMusicPick.AnySong
-     */
-    //% blockId=steamplay_motor_sync
-    //% block="sync motor $motor to $pick"
-    //% pick.defl=SteamplayMusicPick.AnySong
-    //% group="Music sync" weight=120 blockGap=8
-    export function syncMotor(motor: SteamplayMotor, pick: SteamplayMusicPick): void {
-        setup()
-        const i = motor - 1
-        if (syncPick[i] == pick) return   // safe in forever
-        syncPick[i] = pick
-        saved[i] = false
-        if (steamplayCore.musicMatches(pick, steamplayCore.musicNow())) { saved[i] = true; savedSpeed[i] = speed[i] }
-    }
-
-    /**
-     * The motor stops following the music. It keeps its speed now.
-     * @param motor the motor, eg: SteamplayMotor.M1
-     */
-    //% blockId=steamplay_motor_unsync
-    //% block="unsync motor $motor"
-    //% group="Music sync" weight=119
-    export function unsyncMotor(motor: SteamplayMotor): void {
-        syncPick[motor - 1] = 0
-        saved[motor - 1] = false
     }
 
     // ---------------------------------------------------------------
@@ -249,40 +219,42 @@ namespace steamplayMotors {
      * @param motor the motor, eg: SteamplayMotor.M1
      * @param percent the speed to reach, eg: 80
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_motor_ramp
     //% inlineInputMode=inline
-    //% block="ramp motor $motor to speed $percent \\% over $seconds s||and don't wait $dontWait"
+    //% block="ramp motor $motor to speed $percent \\% over $seconds s||and wait $wait"
     //% percent.min=-100 percent.max=100 percent.defl=80 seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Motors" weight=94
-    export function rampMotor(motor: SteamplayMotor, percent: number, seconds: number, dontWait?: boolean): void {
+    export function rampMotor(motor: SteamplayMotor, percent: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(motor - 1)) return
         if (isFollower(motor)) return
         const id = steamplayMotion.start(steamplayMotion.KIND_MOTOR, motor, speed[motor - 1], percent, seconds, 0, 0, false)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
      * Slows a motor to a stop over this many seconds.
      * @param motor the motor, eg: SteamplayMotor.M1
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_motor_ramp_off
     //% inlineInputMode=inline
-    //% block="ramp motor $motor off over $seconds s||and don't wait $dontWait"
+    //% block="ramp motor $motor off over $seconds s||and wait $wait"
     //% seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Motors" weight=92
-    export function rampMotorOff(motor: SteamplayMotor, seconds: number, dontWait?: boolean): void {
+    export function rampMotorOff(motor: SteamplayMotor, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(motor - 1)) return
         if (isFollower(motor)) return
         const id = steamplayMotion.start(steamplayMotion.KIND_MOTOR, motor, speed[motor - 1], 0, seconds, 0, 0, true)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
@@ -303,15 +275,15 @@ namespace steamplayMotors {
     // ---------------------------------------------------------------
 
     /**
-     * Drive setup: which motor is the left wheel and which is the right, and which way each
-     * turns to drive your car forward. Change until "drive forward" goes forward. Put in on start.
+     * Put in on start. Which motor is each wheel, and which way it turns to make the car go forward.
+     * Car goes backward? Flip both. Turns the wrong way? Swap the two motors.
      * @param left the left wheel's motor, eg: SteamplayMotor.M1
      * @param dl its direction for forward, eg: SteamplayTurn.Forwards
      * @param right the right wheel's motor, eg: SteamplayMotor.M2
      * @param dr its direction for forward, eg: SteamplayTurn.Forwards
      */
     //% blockId=steamplay_drive_setup
-    //% block="drive setup: left wheel motor $left $dl right wheel motor $right $dr"
+    //% block="drive setup: to go forward, left wheel motor $left turns $dl and right wheel motor $right turns $dr"
     //% left.defl=SteamplayMotor.M1 right.defl=SteamplayMotor.M2
     //% inlineInputMode=inline
     //% group="Driving" weight=81
@@ -399,23 +371,24 @@ namespace steamplayMotors {
      * @param percent how fast, eg: 80
      * @param radius how wide the turn is, eg: 50
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_drive_ramp
     //% inlineInputMode=inline
-    //% block="ramp drive $dir to $percent \\% radius $radius over $seconds s||and don't wait $dontWait"
+    //% block="ramp drive $dir to $percent \\% radius $radius over $seconds s||and wait $wait"
     //% percent.min=0 percent.max=100 percent.defl=80 radius.min=0 radius.max=100 radius.defl=50
     //% seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Driving" weight=77
-    export function rampDrive(dir: SteamplayDrive, percent: number, radius: number, seconds: number, dontWait?: boolean): void {
+    export function rampDrive(dir: SteamplayDrive, percent: number, radius: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(0) || !musicGuard(1)) return
         const sp = driveSpeeds(dir, percent, radius)
         const a = steamplayMotion.start(steamplayMotion.KIND_MOTOR, 1, speed[0], sp[0], seconds, 0, 0, false)
         let b = -1
         if (!isFollower(2)) b = steamplayMotion.start(steamplayMotion.KIND_MOTOR, 2, speed[1], sp[1], seconds, 0, 0, false)
-        if (!dontWait) {
+        if (wait !== false) {
             steamplayMotion.waitFor(a)
             if (b >= 0) steamplayMotion.waitFor(b)
         }

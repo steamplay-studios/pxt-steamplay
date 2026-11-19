@@ -1,4 +1,4 @@
-# STEAMplay - bench test sheet (v0.5.0)
+# STEAMplay - bench test sheet (v0.6.0)
 
 Load the extension's test project (`test.ts`) onto a micro:bit V2.
 The screen shows **S** (single), **D** (double), **L** (long). A+logo / B+logo show S or L with the centre dot.
@@ -7,15 +7,27 @@ Contacts: wire P1 to GND through a switch or swinging contact; the bottom row co
 Pin stop: a push button between P2 and GND. Beat light: an LED and resistor from P8 to GND.
 Rows 1–27 are from v0.1.0; rows 28–50 from v0.2.0; rows 51–64 from v0.3.0; rows with letters (eg 41b) are newer.
 
-**New in v0.5.0, test these first:**
+**New in v0.6.0, test these first:**
+- "on music [song] note" now has one value: **note** = the note number 1, 2, 3 … (pitch and beat are gone: swap
+  beat for note in old projects). Servos, motors and sync pin lights changed inside it go back by themselves when
+  the song ends. New "on music [song] finished" block for your own end settings. Rows 41c, 41g, 41h, 41k.
+- Sync servo / sync motor (and unsync) removed: delete any in old projects.
+- Sync pin: new modes odd notes, even notes, on, off; "+" opens "split at [note]" for high/low notes (the chosen
+  note counts in both). Rows 41i, 41j, 41l.
+- "and don't wait" is now "and wait [yes]" on ramps, moves and wiggles: set old "don't wait" blocks to no. Row 57d.
+- Wording: drive setup / micro drive setup ("to go forward, left wheel … turns …"), "adjust all servos and micro
+  motors by", music menu "any song or sound".
+- Songs: new "Christmas: The Twelve Days of Christmas" (ear-check 50); Advance Australia Fair slower (104 bpm).
+
+**From v0.5.0 (test if not done yet):**
 - Drive setup is now one block: "drive setup: left wheel motor [1] … right wheel motor [2] …" (Motors) and
   "micro drive setup: left wheel [S1] … right wheel [S2] …" (Servos). Old two-block setups still work but are hidden. Rows 57b, 63.
-- One music menu (any song / any sound / any music / each song or sound by name) in "on music [ ] note beat"
+- One music menu (any song / any sound / any song or sound / each one by name) in "on music [ ] note"
   and "sync pin [P1] to [ ] [mode]" (+ "unsync pin"). Old "sync pin" and "on music note" blocks need the menu set. Rows 41b, 41c, 41f.
-- "sync servo [1] to [ ]" / "unsync servo" (top of Servos) and "sync motor [1] to [ ]" / "unsync motor" (top of Motors):
-  when the music ends they go back to how they were before it. Rows 41d, 41e.
-- New sounds: siren 1 (wail), siren 2 (hi-lo), siren 3 (yelp). Ear-check list rows 9–11 (songs now start at 12).
-- "on music note" no longer skips notes. "[beat] is even" / "is odd" blocks in Music → Light sync. Row 41c.
+- Sync pin has two new modes: "odd notes" and "even notes". Every note mode lights only while its note plays. Row 41i.
+- Sync pin "+": split at [note] for high/low notes (the chosen note counts in both). New modes "on" and "off". Row 41l. Sync pin changes inside "on music" go back when the song ends. Rows 41j, 41k.
+- New song: Christmas: The Twelve Days of Christmas (ear-check 50). New sounds: siren 1 (wail), siren 2 (hi-lo), siren 3 (yelp). Ear-check list rows 9–11 (songs now start at 12).
+- "on music [ ] note" runs on every note; **note** now counts the notes 1, 2, 3 … (no pitch, no beat). "[n] is even" / "is odd" blocks. Servos and motors moved inside "on music" go back by themselves when the music ends. New "on music [ ] finished" block for your own end settings (eg lights off). Rows 41c, 41g, 41h.
 
 **From v0.4.0 (test if not done yet):**
 - Secret code: tap logo, A, B, B quickly - the code runs (no A+logo, no lost A). Rows 30–31b.
@@ -119,9 +131,13 @@ Tick each row and note anything odd in the last column.
 | 40 | Touch P1 again while the goal sound plays (after 1 s) | Sound starts again, not two sounds at once | | |
 | 41 | Is the P8 LED steady when filmed on a phone? | No flicker | | |
 | 41b | Play the horn sound (P8 light synced to "any song") | P8 stays off for the horn, follows songs | | |
-| 41c | "on music [Can-Can] note beat" swings servo 1 on even/odd beats; play Can-Can, then another song, then the horn | Servo dances to Can-Can only, on every note change (none skipped) | | |
-| 41d | "sync servo 1 to Can-Can" with servo at 90 and "sync motor 1 to any song" stopped; play Can-Can while they move | When the song ends both go back (servo to 90, motor stops) | | |
-| 41e | "unsync servo 1" then play Can-Can again | Servo stays wherever the last move left it | | |
+| 41c | "on music [Can-Can] note": if note is even servo 1 to 120 else 60; play Can-Can, then another song, then the horn | Servo changes direction on every Can-Can note (none skipped), not for the others | | |
+| 41g | No sync blocks: "on music [Jingle Bells] note" drives the micro motor car left/right on odd/even notes; play Jingle Bells in background | Car dances, then stops by itself when the song ends | | |
+| 41h | "on music [Can-Can] note": digital write P1 1 on even notes, 0 on odd. "on music [Can-Can] finished": digital write P1 0, show a happy face. Play Can-Can in background | LED flashes with the notes; when the song ends the LED is off and the face shows | | |
+| 41i | "sync pin P1 to Can-Can odd notes" and "sync pin P2 to Can-Can even notes"; play Can-Can | P1 and P2 take turns, one light per note, both off between notes and at the end | | |
+| 41j | "sync pin P1 to Can-Can high notes", open "+", split at Middle C; then High C. Then the same with low notes | High: the chosen note and higher light. Low: the chosen note and lower light | | |
+| 41l | In "on music [Can-Can] note": if note = 20, sync pins P1 and P2 to Can-Can **on**; if note = 30, **off** | Both lights stay on from note 20 (through gaps), off from note 30, back to normal next song | | |
+| 41k | P1 synced to beat in on start. In "on music [Can-Can] note": if note = 10, sync pin P1 to Can-Can every note. Play Can-Can, then Can-Can again | Changes at note 10; next time it starts on the beat again | | |
 | 41f | "unsync pin P8" | Light turns off and stops following | | |
 
 ## Every sound and song (ear check)
@@ -134,7 +150,7 @@ input.onButtonPressed(Button.A, function () {
     basic.showNumber(n)
     if (n < 12) steamplayMusic.playSound(n, SteamplayPlayMode.InBackground)
     else steamplayMusic.playSong(n - 12, SteamplayPlayMode.InBackground)
-    n = (n + 1) % 50
+    n = (n + 1) % 51
 })
 ```
 
@@ -184,6 +200,7 @@ Mark each one: sounds right / wrong notes / too fast / too slow.
 | 47 | Nursery: London's Burning | | |
 | 48 | Nursery: Hickory Dickory Dock | | |
 | 49 | Nursery: Humpty Dumpty | | |
+| 50 | Christmas: The Twelve Days of Christmas (third day: "On the third day … in a pear tree") | | |
 
 ## Band (2–3 micro:bits)
 
@@ -221,8 +238,9 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 55 | "limit servo 1 to 20–160", then set it to 0 | Stops at 20 | | |
 | 56 | "mirror servo 2 to servo 1", move servo 1 | Servo 2 moves the opposite way; servo 2's own blocks do nothing | | |
 | 56b | "mirror motor 2 to motor 1", set motor 1 speed 50 | Motor 2 runs at -50 | | |
-| 57 | Move 6 servos at once with "don't wait" | Smooth? (and 16 at once?) | | |
-| 57b | Car with micro motors on S1/S2: "micro drive setup: left wheel S1 … right wheel S2 …", then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
+| 57 | Move 6 servos at once with "and wait: no" | Smooth? (and 16 at once?) | | |
+| 57b | Car with micro motors on S1/S2: "micro drive setup: to go forward, left wheel S1 turns … and right wheel S2 turns …", then micro drive forward / left radius 0 / 50 / 100, and ramp micro drive | Forward, spin, pivot, wide curve, smooth speed-up | | |
+| 57d | Open the "+" on a ramp block | Shows "and wait [yes]"; yes waits, no carries on straight away | | |
 | 57c | Look at the long blocks (ramp micro motor, move servo, wiggle, ramps on the motors tab) | Each block stays on one line, "s" at the end of the line | | |
 | 58 | Emergency stop while servos move | All servos go floppy, micro motors stop | | |
 
@@ -234,5 +252,5 @@ On each micro:bit: "join sync group [1] with [3] micro:bits" in on start, and in
 | 60 | Same for motor 2 | Both directions work (V2) | | |
 | 61 | Play music while motor 2 runs | Motor 2 doesn't twitch | | |
 | 62 | "ramp motor 1 to 80 over 2 s" | Smooth speed-up | | |
-| 63 | Car: "drive setup: left wheel motor 1 … right wheel motor 2 …", then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
+| 63 | Car: "drive setup: to go forward, left wheel motor 1 turns … and right wheel motor 2 turns …", then drive forward / left radius 0 / 50 / 100 | Forward, spin, pivot, wide curve | | |
 | 64 | "stop all motors and servos" | Everything stops, program keeps running | | |

@@ -55,7 +55,7 @@ enum SteamplayFollow {
  * Kitronik 16-servo board, micro motors, smooth moves and mirroring.
  */
 //% color="#CB6926" weight=100 icon="\uf085" block="STEAMplay Servos"
-//% groups=['Music sync', 'Servos', 'Micro motors', 'Micro driving', 'Mirror', 'Wait and stop', 'Settings']
+//% groups=['Servos', 'Micro motors', 'Micro driving', 'Mirror', 'Wait and stop', 'Settings']
 namespace steamplayServos {
     // ---------------------------------------------------------------
     // Kitronik's board code (I2C PCA9685 at address 0x6A, 50 Hz)
@@ -134,9 +134,10 @@ namespace steamplayServos {
     let followMode: number[] = []
     let isMicro: boolean[] = []
     let isOn: boolean[] = []        // false = signal cut (floppy / stopped)
-    let syncPick: number[] = []     // music this channel is synced to, 0 = none
     let savedKind: number[] = []    // 0 nothing saved, 1 angle, 2 micro motor speed, 3 off
     let savedVal: number[] = []
+    let autoKind: number[] = []     // state before an "on music" block first moved it (0 = not moved by music)
+    let autoVal: number[] = []
     let setUp = false
 
     function setup() {
@@ -145,13 +146,18 @@ namespace steamplayServos {
         for (let i = 0; i < 16; i++) {
             angle.push(90); speed.push(0); limitLo.push(0); limitHi.push(180)
             trim.push(0); flip.push(1); follows.push(0); followMode.push(0); isMicro.push(false)
-            isOn.push(false); syncPick.push(0); savedKind.push(0); savedVal.push(0)
+            isOn.push(false); savedKind.push(0); savedVal.push(0)
+            autoKind.push(0); autoVal.push(0)
         }
         steamplayCore.onMusicChange(function (started: boolean, m: number) {
-            for (let i = 0; i < 16; i++) {
-                if (syncPick[i] == 0 || !steamplayCore.musicMatches(syncPick[i], m)) continue
-                if (started) saveState(i)
-                else restoreState(i)
+            // Anything an "on music" block moved goes back to how it was before the music moved it.
+            if (!started) for (let i = 0; i < 16; i++) {
+                const k = autoKind[i]
+                if (k == 0) continue
+                autoKind[i] = 0
+                savedKind[i] = k
+                savedVal[i] = autoVal[i]
+                restoreState(i)
             }
         })
         steamplayMotion.setApplier(steamplayMotion.KIND_SERVO, applyAngle, applyOff)
@@ -164,9 +170,26 @@ namespace steamplayServos {
         return Math.max(1, Math.min(16, servo)) - 1
     }
 
+    /**
+     * Called before a channel changes. Inside an "on music" block: remember how the channel was
+     * (the first time) so it can go back when the music ends. Returns false if that music has
+     * already ended, so a late move is ignored.
+     */
+    function musicGuard(i: number): boolean {
+        if (!steamplayCore.inMusicMove()) return true
+        if (steamplayCore.musicNow() == 0) return false
+        if (autoKind[i] == 0) {
+            if (!isOn[i]) autoKind[i] = 3
+            else if (isMicro[i]) { autoKind[i] = 2; autoVal[i] = speed[i] }
+            else { autoKind[i] = 1; autoVal[i] = angle[i] }
+        }
+        return true
+    }
+
     /** Set an angle, respecting the range limit, and update any followers. */
     function applyAngle(servo: number, degrees: number) {
         const i = ch(servo)
+        if (!musicGuard(i)) return
         const d = Math.max(limitLo[i], Math.min(limitHi[i], degrees))
         isMicro[i] = false
         isOn[i] = true
@@ -191,6 +214,7 @@ namespace steamplayServos {
     /** Set a micro motor speed, and update any followers. */
     function applySpeed(servo: number, s: number) {
         const i = ch(servo)
+        if (!musicGuard(i)) return
         isMicro[i] = true
         isOn[i] = true
         speed[i] = s
@@ -208,6 +232,7 @@ namespace steamplayServos {
 
     function applyOff(servo: number) {
         const i = ch(servo)
+        if (!musicGuard(i)) return
         speed[i] = 0
         isOn[i] = false
         writeOff(servo)
@@ -221,13 +246,7 @@ namespace steamplayServos {
         for (let i = 0; i < speed.length; i++) { speed[i] = 0; isOn[i] = false }
     }
 
-    function saveState(i: number) {
-        if (!isOn[i]) savedKind[i] = 3
-        else if (isMicro[i]) { savedKind[i] = 2; savedVal[i] = speed[i] }
-        else { savedKind[i] = 1; savedVal[i] = angle[i] }
-    }
-
-    /** Put a synced channel back to how it was when its music started. */
+    /** Put a channel back to how it was before an "on music" block moved it. */
     function restoreState(i: number) {
         const k = savedKind[i]
         if (k == 0) return
@@ -239,44 +258,6 @@ namespace steamplayServos {
         if (k == 3) applyOff(servo)
         else if (k == 2) applySpeed(servo, savedVal[i])
         else applyAngle(servo, savedVal[i])
-    }
-
-    // ---------------------------------------------------------------
-    // Blocks: music sync
-    // ---------------------------------------------------------------
-
-    /**
-     * When this music ends or is stopped, the servo or micro motor goes back to how it was when
-     * the music started. Move it to the music with "on music … note beat".
-     * @param servo the servo channel, eg: SteamplayServo.S1
-     * @param pick which music, eg: SteamplayMusicPick.AnySong
-     */
-    //% blockId=steamplay_servo_sync
-    //% block="sync servo $servo to $pick"
-    //% pick.defl=SteamplayMusicPick.AnySong
-    //% group="Music sync" weight=120 blockGap=8
-    export function syncServo(servo: SteamplayServo, pick: SteamplayMusicPick): void {
-        setup()
-        const i = ch(servo)
-        if (syncPick[i] == pick) return   // safe in forever
-        syncPick[i] = pick
-        savedKind[i] = 0
-        // The music may already be playing (eg sync right after "play song in background").
-        if (steamplayCore.musicMatches(pick, steamplayCore.musicNow())) saveState(i)
-    }
-
-    /**
-     * The servo or micro motor stops following the music. It stays as it is now.
-     * @param servo the servo channel, eg: SteamplayServo.S1
-     */
-    //% blockId=steamplay_servo_unsync
-    //% block="unsync servo $servo"
-    //% group="Music sync" weight=119
-    export function unsyncServo(servo: SteamplayServo): void {
-        setup()
-        const i = ch(servo)
-        syncPick[i] = 0
-        savedKind[i] = 0
     }
 
     /** A follower ignores its own commands until "stop mirroring". */
@@ -322,21 +303,22 @@ namespace steamplayServos {
      * @param servo the servo channel, eg: SteamplayServo.S1
      * @param degrees the angle to move to, eg: 90
      * @param seconds how long the move takes, eg: 2
-     * @param dontWait let the code carry on while it moves, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_servo_move
     //% inlineInputMode=inline
-    //% block="move servo $servo to $degrees ° over $seconds s||and don't wait $dontWait"
+    //% block="move servo $servo to $degrees ° over $seconds s||and wait $wait"
     //% degrees.min=0 degrees.max=180 degrees.defl=90 seconds.min=0 seconds.max=60 seconds.defl=2
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Servos" weight=90
-    export function moveServo(servo: SteamplayServo, degrees: number, seconds: number, dontWait?: boolean): void {
+    export function moveServo(servo: SteamplayServo, degrees: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(ch(servo))) return
         if (isFollower(servo)) return
         const i = ch(servo)
         const id = steamplayMotion.start(steamplayMotion.KIND_SERVO, servo, angle[i], degrees, seconds, 0, 0, false)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
@@ -346,23 +328,24 @@ namespace steamplayServos {
      * @param degrees how far each side, eg: 20
      * @param times how many wiggles, eg: 3
      * @param seconds how long each wiggle takes, eg: 0.5
-     * @param dontWait let the code carry on while it wiggles, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_servo_wiggle
     //% inlineInputMode=inline
-    //% block="wiggle servo $servo by $degrees ° $times times, each wiggle $seconds s||and don't wait $dontWait"
+    //% block="wiggle servo $servo by $degrees ° $times times, each wiggle $seconds s||and wait $wait"
     //% degrees.min=0 degrees.max=90 degrees.defl=20 times.min=1 times.max=50 times.defl=3
     //% seconds.min=0.1 seconds.max=10 seconds.defl=0.5
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Servos" weight=85
-    export function wiggleServo(servo: SteamplayServo, degrees: number, times: number, seconds: number, dontWait?: boolean): void {
+    export function wiggleServo(servo: SteamplayServo, degrees: number, times: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(ch(servo))) return
         if (isFollower(servo)) return
         const i = ch(servo)
         const n = Math.max(1, Math.round(times))
         const id = steamplayMotion.start(steamplayMotion.KIND_WIGGLE, servo, angle[i], angle[i], n * seconds, degrees, n, false)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
@@ -419,40 +402,42 @@ namespace steamplayServos {
      * @param servo the servo channel, eg: SteamplayServo.S1
      * @param percent the speed to reach, eg: 80
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_micro_ramp
     //% inlineInputMode=inline
-    //% block="ramp micro motor $servo to speed $percent \\% over $seconds s||and don't wait $dontWait"
+    //% block="ramp micro motor $servo to speed $percent \\% over $seconds s||and wait $wait"
     //% percent.min=-100 percent.max=100 percent.defl=80 seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Micro motors" weight=66
-    export function rampMicroMotor(servo: SteamplayServo, percent: number, seconds: number, dontWait?: boolean): void {
+    export function rampMicroMotor(servo: SteamplayServo, percent: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(ch(servo))) return
         if (isFollower(servo)) return
         const id = steamplayMotion.start(steamplayMotion.KIND_MICRO, servo, speed[ch(servo)], percent, seconds, 0, 0, false)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
      * Slows a micro motor to a stop over this many seconds, then cuts its signal.
      * @param servo the servo channel, eg: SteamplayServo.S1
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_micro_ramp_off
     //% inlineInputMode=inline
-    //% block="ramp micro motor $servo off over $seconds s||and don't wait $dontWait"
+    //% block="ramp micro motor $servo off over $seconds s||and wait $wait"
     //% seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% group="Micro motors" weight=64
-    export function rampMicroMotorOff(servo: SteamplayServo, seconds: number, dontWait?: boolean): void {
+    export function rampMicroMotorOff(servo: SteamplayServo, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(ch(servo))) return
         if (isFollower(servo)) return
         const id = steamplayMotion.start(steamplayMotion.KIND_MICRO, servo, speed[ch(servo)], 0, seconds, 0, 0, true)
-        if (!dontWait) steamplayMotion.waitFor(id)
+        if (wait !== false) steamplayMotion.waitFor(id)
     }
 
     /**
@@ -494,15 +479,15 @@ namespace steamplayServos {
     let dLeft = [-1, 1]           // SteamplayTurn for each when spinning left
 
     /**
-     * Micro drive setup: which micro motor is the left wheel and which is the right, and which
-     * way each turns to drive your car forward. Change until "micro drive forward" goes forward. Put in on start.
+     * Put in on start. Which channel is each wheel, and which way it turns to make the car go forward.
+     * Car goes backward? Flip both. Turns the wrong way? Swap the two channels.
      * @param left the left wheel, eg: SteamplayServo.S1
      * @param dl its direction for forward, eg: SteamplayTurn.Forwards
      * @param right the right wheel, eg: SteamplayServo.S2
      * @param dr its direction for forward, eg: SteamplayTurn.Backwards
      */
     //% blockId=steamplay_micro_drive_setup
-    //% block="micro drive setup: left wheel $left $dl right wheel $right $dr"
+    //% block="micro drive setup: to go forward, left wheel $left turns $dl and right wheel $right turns $dr"
     //% left.defl=SteamplayServo.S1 right.defl=SteamplayServo.S2
     //% inlineInputMode=inline
     //% group="Micro driving" weight=59
@@ -599,25 +584,26 @@ namespace steamplayServos {
      * @param percent how fast, eg: 80
      * @param radius how wide the turn is, eg: 50
      * @param seconds how long the ramp takes, eg: 1
-     * @param dontWait let the code carry on during the ramp, eg: false
+     * @param wait yes = wait until it finishes (the default), no = carry on straight away, eg: true
      */
     //% blockId=steamplay_micro_drive_ramp
-    //% block="ramp micro drive $dir to $percent \\% radius $radius over $seconds s||and don't wait $dontWait"
+    //% block="ramp micro drive $dir to $percent \\% radius $radius over $seconds s||and wait $wait"
     //% percent.min=0 percent.max=100 percent.defl=80 radius.min=0 radius.max=100 radius.defl=50
     //% seconds.min=0 seconds.max=60 seconds.defl=1
-    //% dontWait.shadow="toggleYesNo"
+    //% wait.shadow="toggleYesNo" wait.defl=true
     //% expandableArgumentMode="toggle"
     //% inlineInputMode=inline
     //% group="Micro driving" weight=55
-    export function rampMicroDrive(dir: SteamplayDrive, percent: number, radius: number, seconds: number, dontWait?: boolean): void {
+    export function rampMicroDrive(dir: SteamplayDrive, percent: number, radius: number, seconds: number, wait?: boolean): void {
         setup()
+        if (!musicGuard(ch(driveCh[0])) || !musicGuard(ch(driveCh[1]))) return
         const sp = microDriveSpeeds(dir, percent, radius)
         const ids: number[] = []
         for (let k = 0; k < 2; k++) {
             const c = driveCh[k]
             if (!isFollower(c)) ids.push(steamplayMotion.start(steamplayMotion.KIND_MICRO, c, speed[ch(c)], sp[k], seconds, 0, 0, false))
         }
-        if (!dontWait) for (const id of ids) steamplayMotion.waitFor(id)
+        if (wait !== false) for (const id of ids) steamplayMotion.waitFor(id)
     }
 
     // ---------------------------------------------------------------
@@ -701,12 +687,12 @@ namespace steamplayServos {
     // ---------------------------------------------------------------
 
     /**
-     * Use if your servos don't reach the right angles: try small changes until
-     * 90 is really the middle. (Kitronik's block.)
+     * Fine-tunes the whole servo board (all 16 channels) if 90 isn't really the middle. Put in on start:
+     * it moves every servo to 90. Doesn't change the motor driver board. (Kitronik's block.)
      * @param change, eg: -13
      */
     //% blockId=steamplay_servo_adjust
-    //% block="adjust servos by $change"
+    //% block="adjust all servos and micro motors by $change"
     //% change.min=-25 change.max=25
     //% group="Settings" weight=20
     export function adjustServos(change: number): void {

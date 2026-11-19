@@ -172,8 +172,17 @@ The band uses the radio, so a band project can't also use its own radio blocks.
 
 ## Light sync
 
-Lights on pins follow STEAMplay music: on the beat, on every note, high or low notes, music energy
-(bright at big moments) or the microphone (V2). Wire an LED with a resistor from the pin to GND, or switch a
+Lights on pins follow STEAMplay music: on the beat, on every note, odd or even notes (1st, 3rd, 5th … or
+2nd, 4th, 6th …), high or low notes, music energy (bright at big moments) or the microphone (V2). Note modes
+light up while each note plays and turn off at the end of the note, so two lights set to odd and even take turns.
+For high and low notes, open the block's "+" to choose the split note on the piano keys: high = that note and higher,
+low = that note and lower. Without it, the split is halfway through each song's notes.
+
+**On** keeps the light fully on while its music plays (through rests too), **off** keeps it off. Use them inside
+"on music" for big moments, eg if note = 40, switch every light to on.
+
+You can change a light partway through a song by putting "sync pin" (or "unsync pin") inside "on music [song] note",
+eg if note = 20, switch to beat. Like servos, a light changed there goes back to how it was when the song ends. Wire an LED with a resistor from the pin to GND, or switch a
 bigger light through a transistor with its own power (share GND).
 
 ```blocks
@@ -181,23 +190,34 @@ steamplayMusic.syncPin(SteamplayPin.P1, SteamplayMusicPick.AnySong, SteamplaySyn
 steamplayMusic.syncPin(SteamplayPin.P2, SteamplayMusicPick.SongCanCan, SteamplaySyncMode.HighNotes)
 ```
 
-Each light follows the music you choose: any song, any sound, any music, or one song or sound by name.
+Each light follows the music you choose: any song, any sound, any song or sound, or one by name.
 "unsync pin" turns a light off and stops it following.
 
-For your own light show or a servo dance, "on music [song] note beat" gives each note's pitch (**note**, how
-high it sounds) and the **beat** (the steady count 1, 2, 3 … you'd clap along to). Pick any song, any sound or
-one by name. **Sync servo** (Servos tab) and **sync motor** (Motors tab) put the servo or motor back to how it
-was before the music once the music ends:
+For your own light show or a servo dance, "on music [song] note" runs on every note of that music, and **note**
+counts the notes: 1, 2, 3 … Use it however you like, eg "note is even" to swing left and right, or "remainder of
+note ÷ 4" for a 4-step dance. Pick any song, any sound, any song or sound, or one by name.
+
+Servos, micro motors and motors changed inside "on music" go back to how they were when the music ends, by
+themselves.
 
 ```blocks
-steamplayServos.syncServo(SteamplayServo.S1, SteamplayMusicPick.SongCanCan)
 steamplayMusic.playSong(SteamplaySong.CanCan, SteamplayPlayMode.InBackground)
-steamplayMusic.onMusicNote(SteamplayMusicPick.SongCanCan, function (note, beat) {
-    if (beat % 2 == 0) {
+steamplayMusic.onMusicNote(SteamplayMusicPick.SongCanCan, function (note) {
+    if (steamplayMusic.isEven(note)) {
         steamplayServos.servoWrite(SteamplayServo.S1, 120)
     } else {
         steamplayServos.servoWrite(SteamplayServo.S1, 60)
     }
+})
+```
+
+**On music [song] finished** runs once when that music ends or is stopped. Put your end settings in it, eg lights
+off with MakeCode's pin blocks, a servo to 90, a happy face:
+
+```blocks
+steamplayMusic.onMusicFinished(SteamplayMusicPick.SongCanCan, function () {
+    pins.digitalWritePin(DigitalPin.P1, 0)
+    basic.showIcon(IconNames.Happy)
 })
 ```
 
@@ -231,8 +251,8 @@ steamplayServos.microDrive(SteamplayDrive.Left, 50, 0)
 ```
 
 **Mirror** makes one servo do the opposite of another: "mirror servo 2 to servo 1" makes servo 2 follow servo 1 (30° becomes 150°, speed 50 becomes −50), **copy** makes it
-do the same. Ramps, moves and wiggles wait until they finish, unless you open the block's "+" and choose
-"don't wait".
+do the same. Ramps, moves and wiggles wait until they finish. To let your code carry on straight away, open the block's
+"+" and set **and wait** to **no**.
 
 ## Motors (Kitronik motor driver board)
 

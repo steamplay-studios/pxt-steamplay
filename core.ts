@@ -123,8 +123,19 @@ namespace steamplayCore {
         const m = _musicNow
         if (m == 0) return
         _musicNow = 0
+        // Putting things back is never blocked, even if music ends from inside an "on music" block.
+        const depth = _musicMoveDepth
+        _musicMoveDepth = 0
         for (let i = 0; i < _musicListeners.length; i++) _musicListeners[i](false, m)
+        _musicMoveDepth = depth
     }
+
+    // Code running inside an "on music … note beat" block. Servos and motors moved from there
+    // are put back automatically when the music ends.
+    let _musicMoveDepth = 0
+    export function musicMoveBegin() { _musicMoveDepth++ }
+    export function musicMoveEnd() { if (_musicMoveDepth > 0) _musicMoveDepth-- }
+    export function inMusicMove(): boolean { return _musicMoveDepth > 0 }
 
     /** Does this music (an id) belong to this choice? */
     export function musicMatches(choice: number, music: number): boolean {

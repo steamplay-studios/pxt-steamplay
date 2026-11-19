@@ -108,6 +108,8 @@ enum SteamplaySong {
     WeWishYou = 15,
     //% block="Christmas: Silent Night"
     SilentNight = 16,
+    //% block="Christmas: The Twelve Days of Christmas"
+    TwelveDays = 38,
     //% block="Easter: Hot Cross Buns"
     HotCrossBuns = 17,
     //% block="solstice: Sumer Is Icumen In"
@@ -153,16 +155,24 @@ enum SteamplaySyncMode {
     //% block="music energy"
     Energy = 4,
     //% block="microphone (V2)"
-    Microphone = 5
+    Microphone = 5,
+    //% block="odd notes (1st, 3rd, 5th …)"
+    OddNotes = 6,
+    //% block="even notes (2nd, 4th, 6th …)"
+    EvenNotes = 7,
+    //% block="on (stays on while the music plays)"
+    On = 8,
+    //% block="off"
+    Off = 9
 }
 
-/** Which music to follow: any song, any sound, any music, or one sound or song. */
+/** Which music to follow: any song, any sound, any song or sound, or one sound or song by name. */
 enum SteamplayMusicPick {
     //% block="any song"
     AnySong = 1,
     //% block="any sound"
     AnySound = 2,
-    //% block="any music"
+    //% block="any song or sound"
     AnyMusic = 3,
     //% block="sound: goal"
     SoundGoal = 200,
@@ -260,6 +270,8 @@ enum SteamplayMusicPick {
     SongWeWishYou = 115,
     //% block="Christmas: Silent Night"
     SongSilentNight = 116,
+    //% block="Christmas: The Twelve Days of Christmas"
+    SongTwelveDays = 138,
     //% block="Easter: Hot Cross Buns"
     SongHotCrossBuns = 117,
     //% block="solstice: Sumer Is Icumen In"
@@ -319,7 +331,7 @@ namespace steamplayMusic {
             case 3: return "150|16|C5:4 D5:2 F5:2 E5:2 D5:2 G5:4 G5:4 G5:2 A5:2 E5:2 F5:2 D5:4 D5:4 D5:2 F5:2 E5:2 D5:2 C5:2 !C6:2 B5:2 A5:2 G5:2 F5:2 E5:2 D5:2 !C5:4"
             case 4: return "150|16|E5:1 D#5:1 D5:1 C#5:1 D5:1 C#5:1 C5:1 B4:1 C5:1 B4:1 A#4:1 A4:1 G#4:1 G4:1 F#4:1 F4:1 E4:1 D#4:1 D4:1 C#4:1 D4:1 C#4:1 C4:1 B3:1 C4:1 B3:1 A#3:1 A3:1 G#3:1 G3:1 F#3:1 F3:1 E4:1 F4:1 E4:1 D#4:1 E4:1 F4:1 E4:1 D#4:1 E4:1 F4:1 F#4:1 G4:1 G#4:1 A4:1 A#4:1 B4:1 !E5:8"
             case 5: return "140|16|R:4 C5:4 E5:4 F5:4 !G5:16 R:4 C5:4 E5:4 F5:4 !G5:16 R:4 C5:4 E5:4 F5:4 G5:8 E5:8 C5:8 E5:8 !D5:16"
-            case 6: return "120|16|G4:4 C5:4 G4:4 E4:4 G4:4 !C5:8 C5:4 C5:3 R:1 E5:4 D5:4 C5:4 B4:4 C5:4 !D5:8 G4:4 C5:4 G4:4 E4:4 C5:4 !G5:8 G5:4 G5:3 R:1 E5:4 D5:4 C5:4 B4:4 A4:4 !G4:12"
+            case 6: return "104|16|G4:4 C5:4 G4:4 E4:4 G4:4 !C5:8 C5:4 C5:3 R:1 E5:4 D5:4 C5:4 B4:4 C5:4 !D5:8 G4:4 C5:4 G4:4 E4:4 C5:4 !G5:8 G5:4 G5:3 R:1 E5:4 D5:4 C5:4 B4:4 A4:4 !G4:12"
             case 7: return "90|12|G4:4 G4:4 A4:4 F#4:6 G4:2 A4:4 B4:4 B4:4 C5:4 B4:6 A4:2 G4:4 A4:4 G4:4 F#4:4 !G4:12"
             case 8: return "90|12|G4:3 E4:1 C4:4 E4:4 G4:4 !C5:8 E5:3 D5:1 C5:4 E4:4 F#4:4 !G4:8"
             case 9: return "110|16|D4:3 D4:1 G4:4 G4:4 A4:4 A4:4 !D5:6 B4:2 G4:3 G4:1 B4:3 G4:1 E4:8 C5:6 A4:2 F#4:4 !G4:12"
@@ -351,6 +363,7 @@ namespace steamplayMusic {
             case 35: return "120|8|D4:2 D4:2 G4:4 D4:2 D4:2 G4:4 A4:2 A4:2 B4:4 A4:2 A4:2 B4:4 !D5:4 D4:4 !D5:4 D4:4 D5:2 C5:2 B4:4 D5:2 C5:2 !B4:4"
             case 36: return "120|12|E4:2 F4:2 G4:2 G4:2 A4:2 B4:2 C5:6 G4:2 E4:2 F4:2 G4:2 G4:2 A4:2 B4:2 C5:6 G4:2 C5:2 C5:2 B4:2 B4:2 A4:2 A4:2 G4:6 G4:2 A4:2 G4:2 F4:2 E4:2 D4:2 !C4:6"
             case 37: return "120|12|E4:4 G4:2 F4:4 A4:2 G4:2 A4:2 B4:2 C5:6 E4:4 G4:2 F4:4 A4:2 G4:2 E4:2 C4:2 D4:6 E4:2 E4:2 G4:2 F4:2 F4:2 A4:2 G4:2 A4:2 B4:2 C5:6 E5:2 E5:2 C5:2 F5:2 F5:2 E5:2 D5:2 C5:2 B4:2 !C5:6"
+            case 38: return "110|16|C5:2 C5:2 C5:2 F5:2 F5:2 F5:4 E5:2 F5:2 G5:2 A5:2 A#5:2 G5:2 A5:8 C6:4 G5:4 A5:8 C6:4 G5:2 A5:2 A#5:4 A5:2 A#5:2 C6:4 D6:2 A#5:2 A5:2 F5:2 G5:4 !F5:12"
         }
         return ""
     }
@@ -474,24 +487,46 @@ namespace steamplayMusic {
     let lightModes: number[] = []
     let lightPeriodSet: boolean[] = []
     let lightPick: number[] = []   // which music each light follows (SteamplayMusicPick)
+    let lightSplit: number[] = []  // high/low split in Hz (0 = halfway through the song's range)
+    // Lights changed inside an "on music" block go back to how they were when the music ends.
+    let backPins: number[] = []
+    let backWas: boolean[] = []    // was synced before
+    let backPick: number[] = []
+    let backMode: number[] = []
+    let backSplit: number[] = []
     let nowMusic = 0               // id of the music playing now (see steamplayCore)
 
     function follows(pick: number): boolean {
         return steamplayCore.musicMatches(pick, nowMusic)
     }
 
-    // "on music … note beat" blocks. Each note's values are handed over straight away in their
+    // "on music … note" blocks. Each note number are handed over straight away in their
     // own fiber, so a busy handler never misses a note or reads the next note's values.
     let notePicks: number[] = []
-    let noteFns: ((note: number, beat: number) => void)[] = []
+    let noteFns: ((note: number) => void)[] = []
 
-    function noteHandlers(f: number, beat: number) {
+    let endPicks: number[] = []
+    let endFns: (() => void)[] = []
+
+    function finishedHandlers(m: number) {
+        for (let i = 0; i < endFns.length; i++) {
+            if (!steamplayCore.musicMatches(endPicks[i], m)) continue
+            control.runInParallel(endFns[i])
+        }
+    }
+
+    function noteHandlers(noteNo: number) {
         for (let i = 0; i < noteFns.length; i++) {
             if (!follows(notePicks[i])) continue
             const h = noteFns[i]
-            control.runInParallel(function () { h(f, beat) })
+            control.runInParallel(function () {
+                steamplayCore.musicMoveBegin()
+                h(noteNo)
+                steamplayCore.musicMoveEnd()
+            })
         }
     }
+
     let micRunning = false
 
     function setLight(i: number, level: number) {
@@ -504,20 +539,31 @@ namespace steamplayMusic {
         }
     }
 
+    /** Lights in "on" mode stay fully on while their music plays. */
+    function lightsOnMode() {
+        for (let i = 0; i < lightPins.length; i++) {
+            if (lightModes[i] == SteamplaySyncMode.On && follows(lightPick[i])) setLight(i, 1023)
+        }
+    }
+
     function lightsAllOff() {
         for (let i = 0; i < lightPins.length; i++) {
             if (lightModes[i] != SteamplaySyncMode.Microphone) setLight(i, 0)
         }
     }
 
-    function lightsNoteOn(f: number, big: boolean) {
-        const mid = (tLow + tHigh) / 2
+    /** A note starts: lights in note modes turn on for this note (and off at the end of it). */
+    function lightsNoteOn(f: number, big: boolean, noteNo: number) {
+        const autoMid = (tLow + tHigh) / 2
         for (let i = 0; i < lightPins.length; i++) {
             const m = lightModes[i]
+            const mid = lightSplit[i] > 0 ? lightSplit[i] : autoMid
             if (!follows(lightPick[i])) continue
             if (m == SteamplaySyncMode.EveryNote) setLight(i, f > 0 ? 1023 : 0)
             else if (m == SteamplaySyncMode.HighNotes) setLight(i, f > 0 && f >= mid ? 1023 : 0)
-            else if (m == SteamplaySyncMode.LowNotes) setLight(i, f > 0 && f < mid ? 1023 : 0)
+            else if (m == SteamplaySyncMode.LowNotes) setLight(i, f > 0 && (lightSplit[i] > 0 ? f <= mid : f < mid) ? 1023 : 0)
+            else if (m == SteamplaySyncMode.OddNotes) setLight(i, f > 0 && noteNo % 2 == 1 ? 1023 : 0)
+            else if (m == SteamplaySyncMode.EvenNotes) setLight(i, f > 0 && noteNo % 2 == 0 ? 1023 : 0)
             else if (m == SteamplaySyncMode.Energy) {
                 let level = 0
                 if (big) level = 1023
@@ -533,7 +579,8 @@ namespace steamplayMusic {
     function lightsNoteOff() {
         for (let i = 0; i < lightPins.length; i++) {
             const m = lightModes[i]
-            if (m == SteamplaySyncMode.EveryNote || m == SteamplaySyncMode.HighNotes || m == SteamplaySyncMode.LowNotes) setLight(i, 0)
+            if (m == SteamplaySyncMode.EveryNote || m == SteamplaySyncMode.HighNotes || m == SteamplaySyncMode.LowNotes
+                || m == SteamplaySyncMode.OddNotes || m == SteamplaySyncMode.EvenNotes) setLight(i, 0)
         }
     }
 
@@ -562,8 +609,6 @@ namespace steamplayMusic {
     // ---------------------------------------------------------------
     let playId = 0        // bumps every time a new sound starts or music stops
     let playing = false
-    let lastNote = 0
-    let lastBeat = 0
     let started = false
 
     // Band state
@@ -579,6 +624,12 @@ namespace steamplayMusic {
         if (started) return
         started = true
         steamplayCore.addStopHandler(function () { stopNow() })
+        // After servos and motors have been put back, run any "on music … finished" blocks.
+        steamplayCore.onMusicChange(function (st: boolean, m: number) {
+            if (st) return
+            putLightsBack()        // lights changed inside "on music" go back first
+            finishedHandlers(m)    // then any "on music … finished" blocks
+        })
     }
 
     function stopNow() {
@@ -603,6 +654,7 @@ namespace steamplayMusic {
         const barMs = stepMs * tBar
         let t0 = control.millis()
         let pos = 0
+        let noteNo = 0      // counts the notes played (rests don't count)
         for (let n = 0; n < tFreq.length; n++) {
             if (id != playId) return
             const f = tFreq[n]
@@ -622,11 +674,10 @@ namespace steamplayMusic {
                     }
                 }
                 if (s == 0) {
+                    if (f > 0) noteNo++
                     music.ringTone(f)
-                    lightsNoteOn(f, tBig[n])
-                    lastNote = f
-                    lastBeat = Math.idiv(step, 4) + 1
-                    if (f > 0) noteHandlers(f, lastBeat)
+                    lightsNoteOn(f, tBig[n], noteNo)
+                    if (f > 0) noteHandlers(noteNo)
                 }
                 if (step % 4 == 0) lightsBeat(true)
                 else if (step % 4 == 2) lightsBeat(false)
@@ -662,6 +713,7 @@ namespace steamplayMusic {
         lightsAllOff()
         nowMusic = musicId
         steamplayCore.musicStarted(musicId)   // ends the music that was playing, then starts this one
+        lightsOnMode()
         load(tune)
         if (mode == SteamplayPlayMode.UntilDone) {
             playLoaded(id, band)
@@ -720,15 +772,16 @@ namespace steamplayMusic {
     }
 
     /**
-     * Runs on each new note of the music you choose. Note = how high the sound is (Hz). Beat = the steady count 1, 2, 3...
+     * Runs on every note of the music you choose. Note counts the notes: 1, 2, 3 ...
+     * Servos, motors and sync pin lights changed here go back to how they were when the music ends.
      * @param pick which music to follow, eg: SteamplayMusicPick.AnySong
      */
     //% blockId=steamplay_on_music_note
-    //% block="on music $pick note $note beat $beat"
+    //% block="on music $pick note $note"
     //% draggableParameters="reporter"
     //% pick.defl=SteamplayMusicPick.AnySong
     //% group="Light sync" weight=60
-    export function onMusicNote(pick: SteamplayMusicPick, handler: (note: number, beat: number) => void) {
+    export function onMusicNote(pick: SteamplayMusicPick, handler: (note: number) => void) {
         setup()
         notePicks.push(pick)
         noteFns.push(handler)
@@ -800,39 +853,97 @@ namespace steamplayMusic {
     // ---------------------------------------------------------------
 
     /**
-     * A light on this pin follows the music. Wire an LED and resistor from the pin to GND. Put in on start.
+     * A light on this pin follows the music. Note modes light it while each note plays and turn it off at the
+     * end of the note. Wire an LED and resistor from the pin to GND. Put in on start.
      * @param pin the pin for the light, eg: SteamplayPin.P1
      * @param pick which music the light follows, eg: SteamplayMusicPick.AnySong
      * @param mode how the light follows the music, eg: SteamplaySyncMode.Beat
+     * @param split for high and low notes: high = this note and higher, low = this note and lower (+ to choose), eg: 262
      */
     //% blockId=steamplay_sync_pin
-    //% block="sync pin $pin to $pick $mode"
+    //% block="sync pin $pin to $pick $mode||split at $split"
     //% pin.defl=SteamplayPin.P1 pick.defl=SteamplayMusicPick.AnySong
+    //% split.shadow="device_note"
+    //% expandableArgumentMode="toggle"
     //% inlineInputMode=inline
     //% group="Light sync" weight=70
-    export function syncPin(pin: SteamplayPin, pick: SteamplayMusicPick, mode: SteamplaySyncMode) {
+    export function syncPin(pin: SteamplayPin, pick: SteamplayMusicPick, mode: SteamplaySyncMode, split?: number) {
         setup()
-        const src = pick
         if (!steamplayCore.claimPin(pin, "lights")) return
+        if (steamplayCore.inMusicMove()) {
+            if (steamplayCore.musicNow() == 0) return   // that music has ended: ignore a late change
+            rememberLight(pin)
+        }
+        applySync(pin, pick, mode, split ? split : 0)
+    }
+
+    function applySync(pin: number, pick: number, mode: number, split: number) {
         let i = lightPins.indexOf(pin)
         if (i < 0) {
             lightPins.push(pin)
             lightModes.push(mode)
             lightPeriodSet.push(false)
-            lightPick.push(src)
+            lightPick.push(pick)
+            lightSplit.push(split)
             i = lightPins.length - 1
             setLight(i, 0)
-        } else if (lightModes[i] != mode || lightPick[i] != src) {
-            lightPick[i] = src
+        } else if (lightModes[i] != mode || lightPick[i] != pick || lightSplit[i] != split) {
             // Only a real change resets the light, so the block is safe in "forever" too.
+            lightPick[i] = pick
             lightModes[i] = mode
+            lightSplit[i] = split
             setLight(i, 0)
         }
+        if (mode == SteamplaySyncMode.On && follows(pick)) setLight(i, 1023)
         if (mode == SteamplaySyncMode.Microphone && steamplayCore.isV2()) startMicrophone()
     }
 
+    function removeLight(pin: number) {
+        const i = lightPins.indexOf(pin)
+        if (i < 0) return
+        setLight(i, 0)
+        lightPins.removeAt(i)
+        lightModes.removeAt(i)
+        lightPeriodSet.removeAt(i)
+        lightPick.removeAt(i)
+        lightSplit.removeAt(i)
+    }
+
+    /** Inside "on music": remember how this light was, the first time it changes. */
+    function rememberLight(pin: number) {
+        if (backPins.indexOf(pin) >= 0) return
+        const i = lightPins.indexOf(pin)
+        backPins.push(pin)
+        backWas.push(i >= 0)
+        backPick.push(i >= 0 ? lightPick[i] : 0)
+        backMode.push(i >= 0 ? lightModes[i] : 0)
+        backSplit.push(i >= 0 ? lightSplit[i] : 0)
+    }
+
+    function putLightsBack() {
+        for (let k = 0; k < backPins.length; k++) {
+            if (backWas[k]) applySync(backPins[k], backPick[k], backMode[k], backSplit[k])
+            else removeLight(backPins[k])
+        }
+        backPins = []; backWas = []; backPick = []; backMode = []; backSplit = []
+    }
+
     /**
-     * True for 2, 4, 6 … Handy with beat: do one move on even beats, another on odd beats.
+     * Runs once when the music you choose finishes or is stopped. Put your end settings here, eg servos to 90, lights off.
+     * @param pick which music, eg: SteamplayMusicPick.AnySong
+     */
+    //% blockId=steamplay_on_music_finished
+    //% block="on music $pick finished"
+    //% pick.defl=SteamplayMusicPick.AnySong
+    //% group="Light sync" weight=59
+    export function onMusicFinished(pick: SteamplayMusicPick, handler: () => void) {
+        setup()
+        endPicks.push(pick)
+        endFns.push(handler)
+    }
+
+    /**
+     * True for 2, 4, 6 … Handy with note: do one move on even notes, another on odd notes.
      * @param n the number to check, eg: 2
      */
     //% blockId=steamplay_is_even
@@ -854,7 +965,7 @@ namespace steamplayMusic {
     }
 
     /**
-     * The light on this pin stops following the music and turns off.
+     * The light on this pin stops following the music and turns off. Inside "on music", it goes back when the music ends.
      * @param pin the pin, eg: SteamplayPin.P1
      */
     //% blockId=steamplay_unsync_pin
@@ -862,12 +973,10 @@ namespace steamplayMusic {
     //% pin.defl=SteamplayPin.P1
     //% group="Light sync" weight=69
     export function unsyncPin(pin: SteamplayPin) {
-        const i = lightPins.indexOf(pin)
-        if (i < 0) return
-        setLight(i, 0)
-        lightPins.removeAt(i)
-        lightModes.removeAt(i)
-        lightPeriodSet.removeAt(i)
-        lightPick.removeAt(i)
+        if (steamplayCore.inMusicMove()) {
+            if (steamplayCore.musicNow() == 0) return
+            rememberLight(pin)
+        }
+        removeLight(pin)
     }
 }
